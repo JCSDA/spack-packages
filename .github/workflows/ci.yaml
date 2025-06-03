@@ -51,7 +51,7 @@ jobs:
             - 'spack_repo/**'
 
   unit-tests:
-    if: ${{ github.repository == 'spack/spack' && needs.changes.outputs.core == 'true' }}
+    # if: ${{ github.repository == 'spack/spack' && needs.changes.outputs.core == 'true' }}
     needs: [ prechecks, changes ]
     uses: ./.github/workflows/unit_tests.yaml
     secrets: inherit
