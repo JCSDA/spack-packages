@@ -1,5 +1,5 @@
 #!/bin/bash
-# set -x
+set -x
 set -e
 
 changed_files=$(git diff --name-only --diff-filter=ACMR HEAD^1 | grep ".*\.pyi\?")
