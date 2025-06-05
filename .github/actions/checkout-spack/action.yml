@@ -31,5 +31,5 @@ runs:
         git remote add origin https://github.com/spack/spack.git
         git fetch --depth ${{ inputs.fetch-depth }} origin ${SPACK_CHECKOUT_VERSION}
         git checkout FETCH_HEAD
-        ${{ inputs.path }}/bin/spack config add -f ./.ci/configs/repos.yaml
+        ./bin/spack config add -f ./.ci/configs/repos.yaml
         cd -
