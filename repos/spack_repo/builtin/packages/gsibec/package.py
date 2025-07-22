@@ -41,7 +41,12 @@ class Gsibec(CMakePackage):
 
     depends_on("ecbuild", type="build")
     depends_on("jedi-cmake", type="build")
-    depends_on("sp", type="build")
+    # Replace the following line with the two commented lines
+    # below once we know the tag that has the ip changes from
+    # https://github.com/GEOS-ESM/GSIbec/pull/66
+    depends_on("sp", type=("build", "run"))
+    # depends_on("sp", when="@:1.2.1", type=("build", "run"))
+    # depends_on("ip@5:", when="@1.2.2:", type=("build", "run"))
 
     def cmake_args(self):
         return [

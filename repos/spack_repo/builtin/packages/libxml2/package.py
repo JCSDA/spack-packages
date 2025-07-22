@@ -134,6 +134,29 @@ class Libxml2(AutotoolsPackage, CMakePackage, NMakePackage):
         hl.directories = [include_dir, self.spec.prefix.include]
         return hl
 
+    def configure_args(self):
+        spec = self.spec
+
+        args = [
+            "--with-lzma={0}".format(spec["xz"].prefix),
+            "--with-iconv={0}".format(spec["iconv"].prefix),
+        ]
+
+        if "+python" in spec:
+            args.extend(
+                [
+                    "--with-python={0}".format(spec["python"].home),
+                    "--with-python-install-dir={0}".format(python_platlib),
+                ]
+            )
+        else:
+            args.append("--without-python")
+
+        args.extend(self.enable_or_disable("shared"))
+        args.extend(self.with_or_without("pic"))
+
+        return args
+
     def patch(self):
         # Remove flags not recognized by the NVIDIA compiler
         if self.spec.satisfies("%nvhpc"):

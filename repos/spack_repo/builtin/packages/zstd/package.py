@@ -56,6 +56,7 @@ class Zstd(CMakePackage, MakefilePackage):
         values=any_combination_of("zlib", "lz4", "lzma"),
         description="Enable support for additional compression methods in programs",
     )
+    variant("pic", default=True, description="Enable position-independent code (PIC)")
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
@@ -70,6 +71,7 @@ class Zstd(CMakePackage, MakefilePackage):
     # (last tested: nvhpc@22.3)
     conflicts("+programs %nvhpc")
 
+    conflicts("~pic libs=shared")
     conflicts("platform=windows", when="@1.5.6")
 
     build_system("cmake", "makefile", default="makefile")
@@ -88,6 +90,7 @@ class CMakeBuilder(CMakeBuilder):
             [
                 self.define("ZSTD_BUILD_STATIC", self.spec.satisfies("libs=static")),
                 self.define("ZSTD_BUILD_SHARED", self.spec.satisfies("libs=shared")),
+                self.define_from_variant("CMAKE_POSITION_INDEPENDENT_CODE", "pic"),
             ]
         )
         if "compression=zlib" in spec:

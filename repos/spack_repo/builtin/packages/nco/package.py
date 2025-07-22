@@ -70,6 +70,12 @@ class Nco(AutotoolsPackage):
     # https://github.com/nco/nco/issues/43
     patch("NUL-0-NULL.patch", when="@:4.6.7")
 
+    # https://github.com/nco/nco/issues/244
+    patch("nco-5_0_1-intel-omp.patch", when="@5.0.1 %intel")
+
+    # Similar but not the same as above
+    patch("nco-5_1_6-intel-omp.patch", when="@5.1.6 %intel")
+
     variant("doc", default=False, description="Build/install NCO TexInfo-based documentation")
     variant("openmp", default=True, description="Include OpenMP support")
 
@@ -89,9 +95,22 @@ class Nco(AutotoolsPackage):
 
     conflicts("%gcc@9:", when="@:4.7.8")
 
+    # Only patched 5.0.1 and 5.1.6 for Intel
+    conflicts("%intel", when="@5.0.2:5.1.5")
+
     def configure_args(self):
         config_args = self.enable_or_disable("doc")
         config_args += self.enable_or_disable("openmp")
+
+        # Older versions of the Intel compilers (definitely 18) can't compile
+        # nco with full optimization (-O2), internal compiler error.
+        if self.spec.satisfies("%intel@18"):
+            config_args.append("CFLAGS=-O1")
+            config_args.append("CXXFLAGS=-O1")
+
+        ncconfig = which("nc-config")
+        nc_libs = ncconfig("--static", "--libs", output=str).strip()
+        config_args.append(f"LIBS={nc_libs}")
         return config_args
 
     def setup_build_environment(self, env: EnvironmentModifications) -> None:

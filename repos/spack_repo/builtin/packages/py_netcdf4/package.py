@@ -41,7 +41,11 @@ class PyNetcdf4(PythonPackage):
     depends_on("py-cftime", type=("build", "run"))
     depends_on("py-certifi", when="@1.6.5:", type=("build", "run"))
     depends_on("py-numpy", type=("build", "link", "run"))
-    depends_on("py-numpy@2:", when="@1.7.1:", type=("build", "link", "run"))
+    # DH* 20250416 WORKAROUND BECAUSE WE USED numpy@1.26 SO FAR WITHOUT
+    # ISSUES AND WE CANNOT SWITCH TO NUMPY@2 YET
+    # depends_on("py-numpy@2.0:", when="@1.7.1:", type=("build", "link", "run"))
+    depends_on("py-numpy@1.26:", when="@1.7.1:", type=("build", "link", "run"))
+    # *DH 20250416
     depends_on("py-numpy@1.9:", when="@1.5.4:1.6.2", type=("build", "link", "run"))
     # https://github.com/Unidata/netcdf4-python/pull/1317
     depends_on("py-numpy@:1", when="@:1.6", type=("build", "link", "run"))
@@ -103,6 +107,8 @@ class PyNetcdf4(PythonPackage):
         # See: http://unidata.github.io/netcdf4-python
         env.set("USE_SETUPCFG", "0")
         env.set("USE_NCCONFIG", "1")
+        if self.spec.satisfies("+mpi"):
+            env.set("MPI_INCDIR", self.spec["mpi"].prefix.include)
         env.set("HDF5_DIR", self.spec["hdf5"].prefix)
         env.set("HDF5_INCDIR", self.spec["hdf5"].prefix.include)
         env.set("HDF5_LIBDIR", self.spec["hdf5"].prefix.lib)

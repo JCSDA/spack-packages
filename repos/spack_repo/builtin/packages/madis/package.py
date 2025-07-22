@@ -4,6 +4,7 @@
 
 import os
 
+import spack.compiler
 from spack_repo.builtin.build_systems.makefile import MakefilePackage
 
 from spack.package import *
@@ -22,6 +23,7 @@ class Madis(MakefilePackage):
 
     maintainers("AlexanderRichert-NOAA")
 
+    version("4.5", sha256="66376c72ade6b06a5392ad8b4b7a338efbf4d82ff6f7f33648ca316738808e6f")
     version("4.3", sha256="5d1ee9800c84e623dcf4271653aa66d17a744143e58354e70f8a0646cd6b246c")
 
     variant("pic", default=True, description="Build with position-independent code (PIC)")
@@ -34,21 +36,30 @@ class Madis(MakefilePackage):
 
     def setup_build_environment(self, env: EnvironmentModifications) -> None:
         fflags = []
-        if self.spec.satisfies("%gcc@10:"):
-            fflags += ["-fallow-argument-mismatch"]
+
+        if self.compiler.name in ["gcc", "clang", "apple-clang"]:
+            with self.compiler.compiler_environment():
+                gfortran_major_version = int(
+                    spack.compiler.get_compiler_version_output(
+                        self.compiler.fc, "-dumpversion"
+                    ).split(".")[0]
+                )
+            if gfortran_major_version >= 10:
+                fflags.append("-fallow-argument-mismatch")
 
         if self.spec.satisfies("+pic"):
-            fflags += ["-fPIC"]
+            fflags.append("-fPIC")
 
         env.set("FFLAGS", " ".join(fflags))
 
         ldflags = []
-        libs = []
 
         if self.spec.satisfies("+pnetcdf"):
+            libs = []
             pnetcdf = self.spec["parallel-netcdf"]
             ldflags.append(pnetcdf.libs.ld_flags)
             libs.append(pnetcdf.libs.link_flags)
+            env.set("LIBS", " ".join(libs))
 
         nfconfig = which(
             os.path.join(self.spec["netcdf-fortran"].prefix.bin, "nf-config"), required=True
@@ -58,7 +69,6 @@ class Madis(MakefilePackage):
         env.set("NETCDF_INC", netcdf_f.prefix.include)
 
         env.set("NETCDF_LIB", " ".join(ldflags))
-        env.set("LIBS", " ".join(libs))
 
     def build(self, spec, prefix):
         with working_dir("src"):

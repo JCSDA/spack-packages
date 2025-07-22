@@ -111,6 +111,9 @@ class Hdf5(CMakePackage):
     version("1.8.12", sha256="b5cccea850096962b5fd9e96f22c4f47d2379224bb41130d9bc038bb6c37dfcb")
     version("1.8.10", sha256="4813b79c5fb8701a625b9924b8203bc7154a77f9b826ad4e034144b4056a160a")
 
+    # For module hierarchy (JCSDA repo only):
+    provides("hdf5_virtual")
+
     variant("shared", default=True, description="Builds a shared version of the library")
 
     variant("hl", default=False, description="Enable the high-level library")
@@ -159,6 +162,9 @@ class Hdf5(CMakePackage):
     # Skip this on Windows since pkgconfig is autotools
     for plat in ["darwin", "linux"]:
         depends_on("pkgconfig", when=f"platform={plat}", type="run")
+
+    # https://github.com/spack/spack/issues/37955
+    conflicts("+fortran", when="@1.14.1-2 %intel", msg="Fortran API broken in 1.14.1-2 with Intel")
 
     conflicts("+mpi", "^mpich@4.0:4.0.3")
     conflicts("api=v116", when="@1.6:1.14", msg="v116 is not compatible with this release")
@@ -566,11 +572,14 @@ class Hdf5(CMakePackage):
                 [
                     "-DMPI_CXX_COMPILER:PATH=%s" % spec["mpi"].mpicxx,
                     "-DMPI_C_COMPILER:PATH=%s" % spec["mpi"].mpicc,
+                    "-DCMAKE_CXX_COMPILER:PATH=%s" % spec["mpi"].mpicxx,
+                    "-DCMAKE_C_COMPILER:PATH=%s" % spec["mpi"].mpicc,
                 ]
             )
 
             if spec.satisfies("+fortran"):
                 args.extend(["-DMPI_Fortran_COMPILER:PATH=%s" % spec["mpi"].mpifc])
+                args.extend(["-DCMAKE_Fortran_COMPILER:PATH=%s" % spec["mpi"].mpifc])
 
         # work-around for https://github.com/HDFGroup/hdf5/issues/1320
         if spec.satisfies("@1.10.8,1.13.0"):

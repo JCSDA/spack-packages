@@ -19,6 +19,7 @@ class Ip(CMakePackage):
     maintainers("AlexanderRichert-NOAA", "edwardhartnett", "Hang-Lei-NOAA")
 
     version("develop", branch="develop")
+    version("5.4.0", sha256="918b2cc425d5f1fa7378346cad2d16ad68b03b575adeb40b8b37a7dc3e876041")
     version("5.3.0", sha256="17dfcb52bab58d3f1bcbbdda5e76430020d963097139e1ba240bfc5fb5c5a5d1")
     version("5.2.0", sha256="2f7b44abcf24e448855f57d107db55d3d58cbc271164ba083491d0c07a7ea3d0")
     version("5.1.0", sha256="5279f11f4c12db68ece74cec392b7a2a6b5166bc505877289f34cc3149779619")
@@ -58,6 +59,9 @@ class Ip(CMakePackage):
         when="@5.0:",
     )
 
+    # JCSDA repo only:
+    variant("alltests", default=False, description="Run full unit test suite", when="@5.3:")
+
     conflicts("+shared ~pic")
 
     depends_on("c", type="build")
@@ -71,11 +75,31 @@ class Ip(CMakePackage):
     depends_on("lapack", when="@5.1:")
     depends_on("cmake@3.18:", when="@5.1:", type="build")
 
+    # JCSDA repo only:
+    resource(
+        name="ip-test-data-20241230.tgz",
+        url="https://ftp.emc.ncep.noaa.gov/static_files/public/NCEPLIBS-ip/ip-test-data-20241230.tgz",
+        sha256="3a33309f2451699c255717ffa60645f6c6862201a234b7bb77a340f5f5d345a8",
+        placement="testfiles",
+        expand=False,
+        when="+alltests",
+    )
+
     def cmake_args(self):
         args = [
             self.define_from_variant("OPENMP", "openmp"),
             self.define_from_variant("CMAKE_POSITION_INDEPENDENT_CODE", "pic"),
         ]
+
+        # JCSDA repo only:
+        if self.spec.satisfies("+alltests"):
+            args.append(self.define("FTP_TEST_FILES", self.run_tests))
+            args.append(
+                self.define(
+                    "TEST_FILES_CACHE",
+                    join_path(self.stage.source_path, "testfiles/ip-test-data-20241230.tgz"),
+                )
+            )
 
         if self.spec.satisfies("@4:"):
             args.append(self.define("BUILD_TESTING", self.run_tests))
@@ -122,7 +146,8 @@ class Ip(CMakePackage):
     @when("@4:")
     def check(self):
         with working_dir(self.build_directory):
-            if self.spec.satisfies("@5.2:"):
-                ctest("-L", "NO_INPUT_DATA")
-            else:
+            # JCSDA repo only; main Spack repo should just use `ctest("-L", "NO_INPUT_DATA")`
+            if self.spec.satisfies("+alltests") or self.spec.satisfies("@:5.2"):
                 ctest()
+            else:
+                ctest("-L", "NO_INPUT_DATA")

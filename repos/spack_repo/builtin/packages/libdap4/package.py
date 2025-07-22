@@ -53,4 +53,8 @@ class Libdap4(AutotoolsPackage):
         # need, so grab this path manually:
         libxml2_include = self.spec["libxml2"].prefix.include
         args = ["CPPFLAGS=-I{0}".format(libxml2_include)]
+        if self.spec.satisfies("^libxml2 ~shared"):
+            xml2_config = which("xml2-config")
+            xml2_flags = xml2_config("--libs", output=str).strip()
+            args.append(f"LIBS={xml2_flags}")
         return args

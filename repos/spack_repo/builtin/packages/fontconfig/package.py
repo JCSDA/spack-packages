@@ -73,6 +73,8 @@ class Fontconfig(AutotoolsPackage):
             args.append(f"CFLAGS={self.compiler.cc_pic_flag}")
             args.append(f"FFLAGS={self.compiler.f77_pic_flag}")
 
+        args.extend(self.with_or_without("pic"))
+
         return args
 
     @run_after("install")

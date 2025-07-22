@@ -19,6 +19,8 @@ class Libtirpc(AutotoolsPackage):
     version("1.2.6", sha256="4278e9a5181d5af9cd7885322fdecebc444f9a3da87c526e7d47f7a12a37d1cc")
     version("1.1.4", sha256="2ca529f02292e10c158562295a1ffd95d2ce8af97820e3534fe1b0e3aec7561d")
 
+    variant("gssapi", default=True, description="Enable GSS-API")
+
     depends_on("c", type="build")  # generated
 
     depends_on("krb5")
@@ -50,8 +52,15 @@ class Libtirpc(AutotoolsPackage):
         return hdrs or None
 
     def configure_args(self):
+        spec = self.spec
+        args = []
+
+        if spec.satisfies("~gssapi"):
+            args.append("--disable-gssapi")
+
         # See discussion in
         # https://github.com/unfs3/unfs3/pull/25#issuecomment-1631198490
-        if self.spec.satisfies("@1.3.3 platform=darwin"):
-            return ["--disable-gssapi"]
-        return []
+        if spec.satisfies("@1.3.3 platform=darwin"):
+            args.append("--disable-gssapi")
+
+        return args

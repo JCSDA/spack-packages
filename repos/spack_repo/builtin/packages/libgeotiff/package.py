@@ -40,6 +40,7 @@ class Libgeotiff(AutotoolsPackage):
     depends_on("proj", when="+proj")
     depends_on("proj@:5", when="@:1.4+proj")
     depends_on("proj@6:", when="@1.5:+proj")
+    depends_on("pkgconfig", type="build")
 
     # Patches required to fix rounding issues in unit tests
     # https://github.com/OSGeo/libgeotiff/issues/16
@@ -78,5 +79,12 @@ class Libgeotiff(AutotoolsPackage):
             args.append("--with-proj={0}".format(spec["proj"].prefix))
         else:
             args.append("--with-proj=no")
+
+        if self.spec["proj"].satisfies("~shared"):
+            pc = which("pkg-config")
+            ldflags = pc("proj", "--static", "--libs-only-L", output=str).strip()
+            libs = pc("proj", "--static", "--libs-only-l", output=str).strip()
+            args.append(f"LDFLAGS={ldflags}")
+            args.append(f"LIBS={libs}")
 
         return args

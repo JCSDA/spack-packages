@@ -242,4 +242,10 @@ class MesonBuilder(meson.MesonBuilder):
                     args.append("-Diconv=gnu")
             else:
                 args.append("-Diconv=libc")
+
+        if self.spec.satisfies("^gettext ~shared"):
+            libs = self.spec["iconv"].libs.search_flags + " " + self.spec["iconv"].libs.link_flags
+            args.append(f"-Dc_link_args={libs}")
+            args.append(f"-Dcpp_link_args={libs}")
+
         return args

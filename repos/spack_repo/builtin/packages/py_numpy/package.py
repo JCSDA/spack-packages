@@ -297,6 +297,9 @@ class PyNumpy(PythonPackage):
             if gcc_version <= Version("5.1"):
                 flags.append(self.compiler.c99_flag)
 
+        if self.spec.satisfies("%apple-clang@13:") and name == "cflags":
+            flags.append("-Wno-error=implicit-function-declaration")
+
         return (flags, None, None)
 
     def blas_lapack_pkg_config(self) -> Tuple[str, str]:

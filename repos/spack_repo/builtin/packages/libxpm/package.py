@@ -44,3 +44,13 @@ class Libxpm(AutotoolsPackage, XorgPackage):
         if name == "ldflags" and "intl" in self.spec["gettext"].libs.names:
             flags.append("-lintl")
         return env_flags(name, flags)
+
+    def configure_args(self):
+        args = []
+        if self.spec.satisfies("^gettext ~shared"):
+            libs = self.spec["gettext"].libs.search_flags
+            libs += " " + self.spec["gettext"].libs.link_flags
+            libs += " " + self.spec["iconv"].libs.search_flags
+            libs += " " + self.spec["iconv"].libs.link_flags
+            args.append(f"LIBS={libs}")
+        return args

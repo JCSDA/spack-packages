@@ -54,8 +54,10 @@ class Ectrans(CMakePackage):
     depends_on("mpi", when="+mpi")
     depends_on("blas")
     depends_on("lapack")
+    # ectrans distinguishes between mkl and fftw
     depends_on("fftw-api", when="+fftw")
     depends_on("mkl", when="+mkl")
+    conflicts("+mkl", when="+fftw")
 
     depends_on("fiat~mpi", when="~mpi")
     depends_on("fiat+mpi", when="+mpi")

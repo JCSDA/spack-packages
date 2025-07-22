@@ -54,6 +54,9 @@ class NetcdfC(CMakePackage, AutotoolsPackage):
     version("4.3.3.1", sha256="f2ee78eb310637c007f001e7c18e2d773d23f3455242bde89647137b7344c2e2")
     version("4.3.3", sha256="3f16e21bc3dfeb3973252b9addf5defb48994f84fc9c9356081f871526a680e7")
 
+    # For module hierarchy (JCSDA repo only):
+    provides("netcdf_c_virtual")
+
     with when("build_system=cmake"):
         # TODO: document why we need to revert https://github.com/Unidata/netcdf-c/pull/1731
         #  with the following patch:
@@ -140,6 +143,8 @@ class NetcdfC(CMakePackage, AutotoolsPackage):
     variant("szip", default=True, description="Enable Szip compression plugin")
     variant("blosc", default=True, description="Enable Blosc compression plugin")
     variant("zstd", default=True, description="Enable Zstandard compression plugin")
+    # JCSDA fork only:
+    variant("parallel_tests", default=False, description="Run parallel tests", when="+mpi")
 
     depends_on("c", type="build")
     depends_on("cxx", type="build", when="build_system=cmake")
@@ -398,6 +403,10 @@ class AutotoolsBuilder(AnyBuilder, autotools.AutotoolsBuilder):
             "--enable-netcdf-4",
         ]
 
+        # JCSDA fork only:
+        if self.spec.satisfies("+parallel_tests") and self.pkg.run_tests:
+            config_args.append("--enable-parallel-tests")
+
         # NCZarr was added in version 4.8.0 as an experimental feature and became a supported one
         # in version 4.8.1:
         if self.spec.satisfies("@4.8.1:"):
@@ -555,7 +564,11 @@ class AutotoolsBuilder(AnyBuilder, autotools.AutotoolsBuilder):
 
     # It looks like the issues with running the tests in parallel were fixed around version 4.6.0
     # (see https://github.com/Unidata/netcdf-c/commit/812c2fd4d108cca927582c0d84049c0f271bb9e0):
-    @when("@:4.5.0")
-    def check(self):
+    @run_after("install")
+    def run_checks(self):
         # h5_test fails when run in parallel
-        make("check", parallel=False)
+        if self.pkg.run_tests:
+            make("check", parallel=self.spec.satisfies("@4.6:"))
+
+    def check(self):
+        pass

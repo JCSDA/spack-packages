@@ -32,6 +32,7 @@ class Esmf(MakefilePackage, PythonExtension):
     # Develop is a special name for spack and is always considered the newest version
     version("develop", branch="develop")
     # generate chksum with 'spack checksum esmf@x.y.z'
+    version("8.9.0b12", commit="d0365bec321318d500a1bda3b60223afdcb72066")
     version("8.8.1", sha256="b0acb59d4f000bfbdfddc121a24819bd2a50997c7b257b0db2ceb96f3111b173")
     version("8.8.0", sha256="f89327428aeef6ad34660b5b78f30d1c55ec67efb8f7df1991fdaa6b1eb3a27c")
     version("8.7.0", sha256="d7ab266e2af8c8b230721d4df59e61aa03c612a95cc39c07a2d5695746f21f56")
@@ -51,7 +52,6 @@ class Esmf(MakefilePackage, PythonExtension):
         sha256="0ff43ede83d1ac6beabd3d5e2a646f7574174b28a48d1b9f2c318a054ba268fd",
         deprecated=True,
     )
-    version("8.3.0b09", commit="5b7e546c4ba350bff9c9ebd00e5fa1c6315d17da", deprecated=True)
     version("8.2.0", sha256="27866c31fdb63c58e78211de970470ca02d274f5d4d6d97e94284d63b1c1d9e4")
     version("8.1.1", sha256="629690c7a488e84ac7252470349458d7aaa98b54c260f8b3911a2e2f3e713dd0")
     version(
@@ -70,6 +70,9 @@ class Esmf(MakefilePackage, PythonExtension):
         sha256="e08f21544083dcbe162b472852e321f8df14f4f711f35508403d32df438367a7",
         deprecated=True,
     )
+
+    # For module hierarchy (JCSDA repo only):
+    provides("esmf_virtual")
 
     variant("mpi", default=True, description="Build with MPI support")
     variant("external-lapack", default=False, description="Build with external LAPACK library")

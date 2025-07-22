@@ -20,6 +20,12 @@ class UfsUtils(CMakePackage):
     maintainers("t-brown", "edwardhartnett", "AlexanderRichert-NOAA", "Hang-Lei-NOAA")
 
     version(
+        "1.13.0",
+        tag="ufs_utils_1_13_0",
+        commit="cadff2ba1a4ec048700b7d7bdf4602ad87186545",
+        submodules=True,
+    )
+    version(
         "1.11.0",
         tag="ufs_utils_1_11_0",
         commit="72701ab45165ae67a1c4b4d855e763bf5674dbd2",
@@ -59,7 +65,6 @@ class UfsUtils(CMakePackage):
     depends_on("esmf")
     depends_on("g2")
     depends_on("hdf5")
-    depends_on("ip")
     depends_on("jasper")
     depends_on("libpng")
     depends_on("nemsio")
@@ -67,9 +72,10 @@ class UfsUtils(CMakePackage):
     depends_on("netcdf-fortran")
     depends_on("sfcio")
     depends_on("sigio")
-    depends_on("sp")
     depends_on("w3emc")
     depends_on("zlib-api")
+    depends_on("ip")
+    depends_on("sp", when="^ip@:4")
 
     def cmake_args(self):
         return [

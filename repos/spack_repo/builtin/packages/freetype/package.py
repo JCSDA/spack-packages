@@ -1,6 +1,7 @@
 # Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+import os
 
 from spack_repo.builtin.build_systems.autotools import AutotoolsBuilder, AutotoolsPackage
 from spack_repo.builtin.build_systems.cmake import CMakeBuilder, CMakePackage
@@ -54,6 +55,7 @@ class Freetype(AutotoolsPackage, CMakePackage):
 
     depends_on("bzip2")
     depends_on("libpng")
+    depends_on("zlib-api")
     for plat in ["linux", "darwin"]:
         depends_on("pkgconfig", type="build", when="platform=%s" % plat)
 
@@ -95,13 +97,31 @@ class AutotoolsBuilder(AutotoolsBuilder):
             "--with-bzip2=yes",
             "--with-harfbuzz=no",
             "--with-png=yes",
-            "--with-zlib=no",
+            "--with-zlib=yes",
         ]
         if self.spec.satisfies("@2.9.1:"):
             args.append("--enable-freetype-config")
         args.extend(self.enable_or_disable("shared"))
         args.extend(self.with_or_without("pic"))
         return args
+
+    # https://github.com/spack/spack/issues/48293
+    def setup_build_environment(self, env):
+        if self.spec.satisfies("+pic"):
+            env.set("CFLAGS", "-fPIC")
+        if self.spec["zlib-api"].external:
+            env.append_path(
+                "PKG_CONFIG_PATH",
+                os.path.dirname(find_first(self.spec["zlib-api"].prefix, "zlib.pc", bfs_depth=10)),
+            )
+
+    # https://github.com/spack/spack/issues/48293
+    def setup_dependent_build_environment(self, env, dependent_spec):
+        if self.spec["zlib-api"].external:
+            env.append_path(
+                "PKG_CONFIG_PATH",
+                os.path.dirname(find_first(self.spec["zlib-api"].prefix, "zlib.pc", bfs_depth=10)),
+            )
 
 
 class CMakeBuilder(CMakeBuilder):

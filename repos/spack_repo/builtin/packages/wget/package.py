@@ -1,6 +1,7 @@
 # Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+import re
 
 from spack_repo.builtin.build_systems.autotools import AutotoolsPackage
 from spack_repo.builtin.build_systems.gnu import GNUMirrorPackage
@@ -63,6 +64,17 @@ class Wget(AutotoolsPackage, GNUMirrorPackage):
     # gnulib bug introced in commit cbdb5ea63cb5348d9ead16dc46bedda77a4c3d7d
     # fix is from commit 84863a1c4dc8cca8fb0f6f670f67779cdd2d543b
     patch("gnulib.patch", when="@1.21.3")
+
+    # For spack external find
+    executables = ["^wget$"]
+
+    @classmethod
+    def determine_version(cls, exe):
+        regex = re.compile("^GNU Wget (.*) built on .*")
+        output = Executable(exe)("--version", output=str, error=str).strip()
+        match = regex.match(output)
+        version = match.group(1)
+        return version
 
     def configure_args(self):
         spec = self.spec

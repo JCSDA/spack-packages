@@ -189,6 +189,17 @@ class PyScipy(PythonPackage):
 
     patch("scipy-clang.patch", when="@1.5.0:1.6.3 %clang")
 
+    # On macOS with GNU gcc instead of Apple/LLVM clang:
+    # build/src.macosx-12-x86_64-3.9/scipy/integrate/vodemodule.c:94:10:
+    #   fatal error: threads.h: No such file or directory
+    #      94 | #include <threads.h>
+    #         |          ^~~~~~~~~~~
+    #   compilation terminated.
+    # See also: https://github.com/macports/macports-ports/commit/d45376ea224ffa9184c6a0ecbcbdf024ee447f12
+    patch("use_stdc_no_threads.patch", when="platform=darwin %gcc")
+    # Additional changes needed for scipy-1.8.0
+    patch("use_stdc_no_threads_scipy180_addon.patch", when="@1.8: platform=darwin %gcc")
+
     # https://github.com/scipy/scipy/issues/21884
     patch(
         "https://github.com/scipy/scipy/commit/ab7d08c6148286059f6498ab5c3070268d13cbd9.patch?full_index=1",
@@ -227,8 +238,13 @@ class PyScipy(PythonPackage):
                 env.set("NPY_DISTUTILS_APPEND_FLAGS", "1")
 
         # https://github.com/scipy/scipy/issues/14935
-        if self.spec.satisfies("%intel ^py-pythran"):
-            env.set("SCIPY_USE_PYTHRAN", "0")
+        # Newer pythran versions 0.12+ work with newer Intel compilers only for py-scipy.
+        # Tested to work: intel@2022.0.1; tested to not work: 19.1.1.217; in between unknown
+        if self.spec.satisfies("%intel ^py-pythran") or self.spec.satisfies("%oneapi ^py-pythran"):
+            if self.spec["py-pythran"].version < Version("0.12") or self.spec.satisfies(
+                "%intel@:19.99.99"
+            ):
+                env.set("SCIPY_USE_PYTHRAN", "0")
 
         # Pick up BLAS/LAPACK from numpy
         if self.spec.satisfies("@:1.8"):

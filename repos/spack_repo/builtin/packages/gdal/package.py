@@ -268,6 +268,9 @@ class Gdal(CMakePackage, AutotoolsPackage, PythonExtension):
     variant("perl", default=False, when="@:3.4", description="Build Perl bindings")
     variant("php", default=False, when="@:2.3", description="Build PHP bindings")
 
+    variant("shared", default=True, description="Build shared libraries")
+    variant("pic", default=False, description="Enable position-independent code (PIC)")
+
     # Build system
     build_system(
         conditional("cmake", when="@3.5:"), conditional("autotools", when="@:3.5"), default="cmake"
@@ -651,6 +654,8 @@ class CMakeBuilder(CMakeBuilder):
             self.define_from_variant("BUILD_JAVA_BINDINGS", "java"),
             self.define_from_variant("BUILD_CSHARP_BINDINGS", "csharp"),
         ]
+        args.append(self.define_from_variant("BUILD_SHARED_LIBS", "shared"))
+        args.append(self.define_from_variant("CMAKE_POSITION_INDEPENDENT_CODE", "pic"))
 
         # Remove empty strings
         args = [arg for arg in args if arg]
@@ -786,6 +791,9 @@ class AutotoolsBuilder(AutotoolsBuilder):
             else:
                 args.append("--without-libiconv-prefix")
 
+        args.extend(self.enable_or_disable("shared"))
+        args.append(self.with_or_without("pic"))
+
         # Renamed or modified flags
         if self.spec.satisfies("@3:"):
             args.extend(
@@ -816,15 +824,34 @@ class AutotoolsBuilder(AutotoolsBuilder):
         else:
             args.append(self.with_or_without("dwgdirect", variant="teigha", package="teigha"))
 
+        ldflags = []
+        libs = []
+
         if self.spec.satisfies("+hdf4"):
             hdf4 = self.spec["hdf"]
             if "+external-xdr" in hdf4 and hdf4["rpc"].name == "libtirpc":
                 args.append("LIBS=" + hdf4["rpc"].libs.link_flags)
 
+        if self.spec["proj"].satisfies("~shared"):
+            pc = which("pkg-config")
+            ldflags.append(pc("proj", "--static", "--libs-only-L", output=str).strip())
+            libs.append(pc("proj", "--static", "--libs-only-l", output=str).strip())
+        if self.spec.satisfies("+iconv") and self.spec["libiconv"].satisfies("libs=static"):
+            libs.append("-liconv")
+
+        if ldflags or libs:
+            args.append("LDFLAGS=%s" % " ".join(ldflags + libs))
+            args.append("LIBS=%s" % " ".join(libs))
+
         # Remove empty strings
         args = [arg for arg in args if arg]
 
         return args
+
+    @run_after("autoreconf")
+    @when("^geos~shared")
+    def patch(self):
+        filter_file("--ldflags` -lgeos_c", "--ldflags` -lgeos_c -lgeos", "configure")
 
     def build(self, pkg, spec, prefix):
         # https://trac.osgeo.org/gdal/wiki/GdalOgrInJavaBuildInstructionsUnix

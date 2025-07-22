@@ -28,6 +28,12 @@ class Grads(AutotoolsPackage):
     variant("geotiff", default=True, description="Enable GeoTIFF support")
     variant("shapefile", default=True, description="Enable Shapefile support")
     variant("grib2", default=True, description="Enable GRIB2 support with the g2c library.")
+    variant("netcdf", default=True, description="Enable NetCDF support")
+    """
+    # FIXME: Fails with undeclared functions (tdefi, tdef, ...) in gauser.c
+    variant('hdf4', default=False, description="Enable HDF4 support")
+    depends_on('hdf', when='+hdf4')
+    """
     variant("dap", default=False, description="Enable DAP support")
 
     # TODO: This variant depends on the "simple X" library, which is no longer available
@@ -44,6 +50,7 @@ class Grads(AutotoolsPackage):
 
     depends_on("hdf5", when="+hdf5")
     depends_on("hdf", when="+hdf4")
+    depends_on("hdf5", when="+netcdf")
     depends_on("netcdf-c", when="+netcdf")
     depends_on("g2c+pic", when="+grib2")
     depends_on("libgeotiff", when="+geotiff")
@@ -55,6 +62,9 @@ class Grads(AutotoolsPackage):
     depends_on("cairo +X +pdf +fc +ft")
     depends_on("readline")
     depends_on("pkgconfig", type="build")
+
+    # Grads does not supply #include <stdint.h> which Intel complains about
+    patch("stdint.patch")
 
     # The project is hosted on GitHub for versions 2.2.2 and later
     def url_for_version(self, version):
@@ -86,8 +96,25 @@ class Grads(AutotoolsPackage):
         return (flags, None, None)
 
     def setup_build_environment(self, env: EnvironmentModifications) -> None:
+        spec = self.spec
+        libs = []
+        cppflags = []
+
         env.set("SUPPLIBS", "/")
 
+        if "+grib2" in spec:
+            cppflags.append("-I" + spec["g2c"].prefix.include)
+            cppflags.append("-I" + spec["jasper"].prefix.include.jasper)
+
+        # Grads is not compatible with HDF5 1.12.0
+        # which had an API change in h5_getinfo
+        if spec["hdf5"].satisfies("@1.12.0:"):
+            cppflags.append("-DH5_USE_110_API")
+
+        # Need to manually supply -ludunits2
+        libs.append("-ludunits2")
+        env.set("LIBS", " ".join(libs))
+        env.set("CPPFLAGS", " ".join(cppflags))
         # Recent versions configure scripts break without PKG_CONFIG set
         env.set("PKG_CONFIG", self.spec["pkgconfig"].prefix.bin.join("pkg-config"))
 
@@ -112,5 +139,9 @@ class Grads(AutotoolsPackage):
         args.extend(self.with_or_without("hdf5"))
         args.extend(self.with_or_without("netcdf"))
         args.extend(self.with_or_without("gadap", variant="dap"))
+
+        # GCC on macOS complained about these directories not existing
+        mkdirp("bin")
+        mkdirp("lib")
 
         return args

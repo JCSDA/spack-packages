@@ -76,6 +76,14 @@ class MesonBuilder(meson.MesonBuilder):
 
         return args
 
+    def setup_build_environment(self, env):
+        if self.spec["libxml2"].satisfies("~shared"):
+            pc = which(join_path(self.spec["pkgconfig"].prefix.bin, "pkg-config"))
+            pc.add_default_env("PKG_CONFIG_PATH", self.spec["libxml2"].prefix.lib.pkgconfig)
+            ldflags = pc("libxml-2.0", "--static", "--libs-only-L", output=str).strip()
+            libs = pc("libxml-2.0", "--static", "--libs-only-l", output=str).strip()
+            env.set("LDFLAGS", f"{ldflags} {libs}")
+
 
 class AutotoolsBuilder(autotools.AutotoolsBuilder):
     def configure_args(self):

@@ -37,3 +37,6 @@ class WrfIo(CMakePackage):
     def cmake_args(self):
         args = [self.define_from_variant("OPENMP", "openmp")]
         return args
+
+    def check(self):
+        make("test")

@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import spack.compiler
 from spack_repo.builtin.build_systems.cmake import CMakePackage
 
 from spack.package import *
@@ -95,6 +96,19 @@ class G2(CMakePackage):
         ]
 
         return args
+
+    # https://github.com/JCSDA/spack/issues/475
+    def flag_handler(self, name, flags):
+        if self.spec.satisfies("@3.5.1") and name == "fflags" and "gfortran" in self.compiler.fc:
+            with self.compiler.compiler_environment():
+                gfortran_major_version = int(
+                    spack.compiler.get_compiler_version_output(
+                        self.compiler.fc, "-dumpversion"
+                    ).split(".")[0]
+                )
+            if gfortran_major_version < 10:
+                flags.append("-fno-range-check")
+        return (None, None, flags)
 
     def setup_run_environment(self, env: EnvironmentModifications) -> None:
         precisions = (

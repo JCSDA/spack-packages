@@ -41,6 +41,14 @@ class Met(AutotoolsPackage):
     variant("modis", default=False, description="Enable compilation of modis")
     variant("graphics", default=False, description="Enable compilation of mode_graphics")
 
+    # JCSDA fork only
+    variant(
+        "shared-intel",
+        default=False,
+        when="%oneapi",
+        description="Enable linking to shared intel libraries (libintlc instead of libirc)",
+    )
+
     depends_on("cxx", type="build")  # generated
     depends_on("fortran", type="build")  # generated
 
@@ -65,6 +73,7 @@ class Met(AutotoolsPackage):
     depends_on("py-numpy", when="+python", type=("build", "run"))
     depends_on("py-xarray", when="+python", type=("build", "run"))
     depends_on("py-pandas", when="+python", type=("build", "run"))
+    depends_on("patchelf@0.13:", when="platform=linux", type="build")
 
     patch("openmp_shape_patch.patch", when="@10.1.0")
 
@@ -90,6 +99,8 @@ class Met(AutotoolsPackage):
     def setup_build_environment(self, env: EnvironmentModifications) -> None:
         spec = self.spec
         cppflags = []
+        fflags = []
+        fcflags = []
         ldflags = []
         libs = []
 
@@ -100,6 +111,10 @@ class Met(AutotoolsPackage):
         cppflags.append(netcdfcxx.libs.search_flags)
         ldflags.append(netcdfcxx.libs.ld_flags)
         libs.append(netcdfcxx.libs.link_flags)
+
+        if spec.satisfies("%oneapi") and spec.satisfies("+shared-intel"):
+            fflags.append("-shared-intel")
+            fcflags.append("-shared-intel")
 
         netcdfc = spec["netcdf-c"]
         if netcdfc.satisfies("+shared"):
@@ -127,7 +142,11 @@ class Met(AutotoolsPackage):
 
         if "+grib2" in spec:
             g2c = spec["g2c"]
-            env.set("MET_GRIB2CLIB", g2c.libs.directories[0])
+            shared_g2c = True if "+shared" in g2c else False
+            g2c_libdir = find_libraries(
+                "libg2c", root=g2c.prefix, shared=shared_g2c, recursive=True
+            ).directories[0]
+            env.set("MET_GRIB2CLIB", g2c_libdir)
             env.set("MET_GRIB2CINC", g2c.prefix.include)
             env.set("GRIB2CLIB_NAME", "-lg2c")
 
@@ -163,6 +182,10 @@ class Met(AutotoolsPackage):
             env.set("MET_FREETYPE", freetype.prefix)
 
         env.set("CPPFLAGS", " ".join(cppflags))
+        if fflags:
+            env.set("FFLAGS", " ".join(fflags))
+        if fcflags:
+            env.set("FCFLAGS", " ".join(fcflags))
         env.set("LIBS", " ".join(libs))
         env.set("LDFLAGS", " ".join(ldflags))
 
@@ -180,6 +203,14 @@ class Met(AutotoolsPackage):
 
         return args
 
+    @run_after("install", when="platform=linux")
+    def fixup_rpaths(self):
+        # set rpaths of binaries Python's lib directory
+        rpaths = self.spec["python"].libs.directories
+
+        for binary in find(self.prefix.bin, "*"):
+            patchelf = Executable("patchelf")
+            patchelf("--add-rpath", ":".join(rpaths), binary)
 
 #    def setup_run_environment(self, env: EnvironmentModifications) -> None:
 #        env.set('MET_BASE', self.prefix)
