@@ -102,8 +102,6 @@ class Crtm(CMakePackage):
     def url_for_version(self, version):
         if self.spec.satisfies("@=3.1.1-build1"):
             fmtversion = str(version).replace("-build", "+build")
-            if not fmtversion.startswith("v"):
-                fmtversion = f"v{fmtversion}"
             return f"https://github.com/JCSDA/CRTMv3/archive/refs/tags/{fmtversion}.tar.gz"
         elif version >= Version("3"):
             return f"https://github.com/JCSDA/CRTMv3/archive/refs/tags/v{version}.tar.gz"

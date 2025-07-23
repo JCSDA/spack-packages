@@ -8,9 +8,9 @@ import os
 import _vendoring.archspec.cpu
 import py.path
 import pytest
+from spack_repo.builtin.build_systems import autotools, cmake
 
 import spack
-import spack.builder
 import spack.concretize
 import spack.environment
 import spack.paths
@@ -18,11 +18,18 @@ import spack.platforms
 import spack.platforms.test
 from spack.build_environment import ChildError, setup_package
 from spack.installer import PackageInstaller
-from spack.package import FileList, InstallError, MakeExecutable, Spec, find, which, working_dir
+from spack.package import (
+    FileList,
+    InstallError,
+    MakeExecutable,
+    Spec,
+    create_builder,
+    find,
+    which,
+    working_dir,
+)
 
 DATA_PATH = os.path.join(spack.paths.test_path, "data")
-
-pytestmark = pytest.mark.skip(reason="build_systems module is moved out of spack")
 
 
 @pytest.fixture()
@@ -148,7 +155,7 @@ class TestAutotoolsPackage:
 
         # Assert the libtool archive is not there and we have
         # a log of removed files
-        assert not os.path.exists(spack.builder.create(s.package).libtool_archive_file)
+        assert not os.path.exists(create_builder(s.package).libtool_archive_file)
         search_directory = os.path.join(s.prefix, ".spack")
         libtool_deletion_log = find(search_directory, "removed_la_files.txt", recursive=True)
         assert libtool_deletion_log
@@ -159,13 +166,11 @@ class TestAutotoolsPackage:
         # Install a package that creates a mock libtool archive,
         # patch its package to preserve the installation
         s = spack.concretize.concretize_one("libtool-deletion")
-        monkeypatch.setattr(
-            type(spack.builder.create(s.package)), "install_libtool_archives", True
-        )
+        monkeypatch.setattr(type(create_builder(s.package)), "install_libtool_archives", True)
         PackageInstaller([s.package], explicit=True).install()
 
         # Assert libtool archives are installed
-        assert os.path.exists(spack.builder.create(s.package).libtool_archive_file)
+        assert os.path.exists(create_builder(s.package).libtool_archive_file)
 
     def test_autotools_gnuconfig_replacement(self, mutable_database):
         """
@@ -267,25 +272,21 @@ class TestCMakePackage:
     def test_cmake_std_args(self, default_mock_concretization):
         # Call the function on a CMakePackage instance
         s = default_mock_concretization("cmake-client")
-        expected = spack.build_systems.cmake.CMakeBuilder.std_args(s.package)
-        assert spack.builder.create(s.package).std_cmake_args == expected
+        expected = cmake.CMakeBuilder.std_args(s.package)
+        assert create_builder(s.package).std_cmake_args == expected
 
         # Call it on another kind of package
         s = default_mock_concretization("mpich")
-        assert spack.build_systems.cmake.CMakeBuilder.std_args(s.package)
+        assert cmake.CMakeBuilder.std_args(s.package)
 
     def test_cmake_bad_generator(self, default_mock_concretization):
         s = default_mock_concretization("cmake-client")
         with pytest.raises(InstallError):
-            spack.build_systems.cmake.CMakeBuilder.std_args(
-                s.package, generator="Yellow Sticky Notes"
-            )
+            cmake.CMakeBuilder.std_args(s.package, generator="Yellow Sticky Notes")
 
     def test_cmake_secondary_generator(self, default_mock_concretization):
         s = default_mock_concretization("cmake-client")
-        assert spack.build_systems.cmake.CMakeBuilder.std_args(
-            s.package, generator="CodeBlocks - Unix Makefiles"
-        )
+        assert cmake.CMakeBuilder.std_args(s.package, generator="CodeBlocks - Unix Makefiles")
 
     def test_define(self, default_mock_concretization):
         s = default_mock_concretization("cmake-client")
@@ -319,12 +320,12 @@ class TestCMakePackage:
 
     def test_cmake_std_args_cuda(self, default_mock_concretization):
         s = default_mock_concretization("vtk-m +cuda cuda_arch=70 ^cmake@3.23")
-        option = spack.build_systems.cmake.CMakeBuilder.define_cuda_architectures(s.package)
+        option = cmake.CMakeBuilder.define_cuda_architectures(s.package)
         assert "-DCMAKE_CUDA_ARCHITECTURES:STRING=70" == option
 
     def test_cmake_std_args_hip(self, default_mock_concretization):
         s = default_mock_concretization("vtk-m +rocm amdgpu_target=gfx900 ^cmake@3.23")
-        option = spack.build_systems.cmake.CMakeBuilder.define_hip_architectures(s.package)
+        option = cmake.CMakeBuilder.define_hip_architectures(s.package)
         assert "-DCMAKE_HIP_ARCHITECTURES:STRING=gfx900" == option
 
 
@@ -388,9 +389,7 @@ def test_autotools_args_from_conditional_variant(default_mock_concretization):
     is not met. When this is the case, the variant is not set in the spec."""
     s = default_mock_concretization("autotools-conditional-variants-test")
     assert "example" not in s.variants
-    assert (
-        len(spack.builder.create(s.package)._activate_or_not("example", "enable", "disable")) == 0
-    )
+    assert len(create_builder(s.package)._activate_or_not("example", "enable", "disable")) == 0
 
 
 def test_autoreconf_search_path_args_multiple(default_mock_concretization, tmpdir):
@@ -402,12 +401,7 @@ def test_autoreconf_search_path_args_multiple(default_mock_concretization, tmpdi
     build_dep_one, build_dep_two = spec.dependencies(deptype="build")
     build_dep_one.set_prefix(str(tmpdir.join("fst")))
     build_dep_two.set_prefix(str(tmpdir.join("snd")))
-    assert spack.build_systems.autotools._autoreconf_search_path_args(spec) == [
-        "-I",
-        aclocal_fst,
-        "-I",
-        aclocal_snd,
-    ]
+    assert autotools._autoreconf_search_path_args(spec) == ["-I", aclocal_fst, "-I", aclocal_snd]
 
 
 def test_autoreconf_search_path_args_skip_automake(default_mock_concretization, tmpdir):
@@ -421,7 +415,7 @@ def test_autoreconf_search_path_args_skip_automake(default_mock_concretization, 
     build_dep_one.name = "automake"
     build_dep_one.set_prefix(str(tmpdir.join("fst")))
     build_dep_two.set_prefix(str(tmpdir.join("snd")))
-    assert spack.build_systems.autotools._autoreconf_search_path_args(spec) == ["-I", aclocal_snd]
+    assert autotools._autoreconf_search_path_args(spec) == ["-I", aclocal_snd]
 
 
 def test_autoreconf_search_path_args_external_order(default_mock_concretization, tmpdir):
@@ -432,12 +426,7 @@ def test_autoreconf_search_path_args_external_order(default_mock_concretization,
     build_dep_one, build_dep_two = spec.dependencies(deptype="build")
     build_dep_one.external_path = str(tmpdir.join("fst"))
     build_dep_two.set_prefix(str(tmpdir.join("snd")))
-    assert spack.build_systems.autotools._autoreconf_search_path_args(spec) == [
-        "-I",
-        aclocal_snd,
-        "-I",
-        aclocal_fst,
-    ]
+    assert autotools._autoreconf_search_path_args(spec) == ["-I", aclocal_snd, "-I", aclocal_fst]
 
 
 def test_autoreconf_search_path_skip_nonexisting(default_mock_concretization, tmpdir):
@@ -446,7 +435,7 @@ def test_autoreconf_search_path_skip_nonexisting(default_mock_concretization, tm
     build_dep_one, build_dep_two = spec.dependencies(deptype="build")
     build_dep_one.set_prefix(str(tmpdir.join("fst")))
     build_dep_two.set_prefix(str(tmpdir.join("snd")))
-    assert spack.build_systems.autotools._autoreconf_search_path_args(spec) == []
+    assert autotools._autoreconf_search_path_args(spec) == []
 
 
 def test_autoreconf_search_path_dont_repeat(default_mock_concretization, tmpdir):
@@ -456,4 +445,4 @@ def test_autoreconf_search_path_dont_repeat(default_mock_concretization, tmpdir)
     build_dep_one, build_dep_two = spec.dependencies(deptype="build")
     build_dep_one.external_path = str(tmpdir.join("prefix"))
     build_dep_two.external_path = str(tmpdir.join("prefix"))
-    assert spack.build_systems.autotools._autoreconf_search_path_args(spec) == ["-I", aclocal]
+    assert autotools._autoreconf_search_path_args(spec) == ["-I", aclocal]
