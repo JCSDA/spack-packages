@@ -2,9 +2,6 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import os
-
-import spack.compiler
 from spack_repo.builtin.build_systems.makefile import MakefilePackage
 
 from spack.package import *
@@ -37,13 +34,8 @@ class Madis(MakefilePackage):
     def setup_build_environment(self, env: EnvironmentModifications) -> None:
         fflags = []
 
-        if self.compiler.name in ["gcc", "clang", "apple-clang"]:
-            with self.compiler.compiler_environment():
-                gfortran_major_version = int(
-                    spack.compiler.get_compiler_version_output(
-                        self.compiler.fc, "-dumpversion"
-                    ).split(".")[0]
-                )
+        if self.spec["fortran"].name == "gcc":
+            gfortran_major_version = int(self.spec["fortran"].version[0])
             if gfortran_major_version >= 10:
                 fflags.append("-fallow-argument-mismatch")
 
