@@ -47,6 +47,9 @@ class PyMpi4py(PythonPackage):
 
     def setup_build_environment(self, env: EnvironmentModifications) -> None:
         env.set("MPICC", self.spec["mpi"].mpicc)
+        # Compilation killed with LLVM clang and Intel LLVM with -O3
+        if self.spec.compiler.name in ["intel-oneapi-compilers", "llvm"]:
+            env.set("CFLAGS", "-O1")
 
     @run_before("install")
     def cythonize(self):
