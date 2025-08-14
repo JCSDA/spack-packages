@@ -25,6 +25,7 @@ class Ncview(AutotoolsPackage):
     depends_on("udunits")
     depends_on("libpng")
     depends_on("libxaw")
+    depends_on("libxmu")
 
     def configure_args(self):
         spec = self.spec
@@ -36,10 +37,6 @@ class Ncview(AutotoolsPackage):
         # dependency being specified above
         config_args.append("--with-udunits2_incdir={}".format(spec["udunits"].prefix.include))
         config_args.append("--with-udunits2_libdir={}".format(spec["udunits"].prefix.lib))
-
-        # Use the same C compiler that was used for netcdf-c
-        cc = subprocess.check_output(["nc-config", "--cc"]).decode().rstrip("\n")
-        config_args.append("CC={}".format(cc))
 
         return config_args
 
