@@ -72,6 +72,7 @@ class Crtm(CMakePackage):
         "fix", default=False, description='Download CRTM coefficient or "fix" files (several GBs).'
     )
 
+    depends_on("c", type="build")
     depends_on("fortran", type="build")
 
     depends_on("cmake@3.15:", type="build")
