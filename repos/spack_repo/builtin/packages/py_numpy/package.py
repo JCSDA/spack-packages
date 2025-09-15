@@ -230,6 +230,16 @@ class PyNumpy(PythonPackage):
             when="@1.26:1.26.3",
         )
 
+    # https://github.com/spack/spack-packages/issues/1477
+    @when("@1.26 ^intel-oneapi-compilers@2025.2")
+    def patch(self):
+        filter_file(
+            ".get(compiler_id, ['-O3'])",
+            ".get(compiler_id, ['-O1'])",
+            "./numpy/core/meson.build",
+            string=True
+        )
+
     # meson.build
     # https://docs.scipy.org/doc/scipy/dev/toolchain.html#compilers
     conflicts("%gcc@:8.3", when="@1.26:", msg="NumPy requires GCC >= 8.4")
