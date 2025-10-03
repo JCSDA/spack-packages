@@ -77,7 +77,6 @@ class Flecsi(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("kokkos +rocm", when="+kokkos +rocm")
     depends_on("kokkos +openmp", when="+kokkos +openmp")
     requires("+openmp", when="@:2.3 ^kokkos +openmp")
-    depends_on("legion@cr-20210122", when="backend=legion @2.0:2.1.0")
     depends_on("legion@cr-20230307", when="backend=legion @2.2.0:2.2.1")
     depends_on("legion@24.03.0:", when="backend=legion @2.2.2:")
     depends_on("legion@24.09.0:", when="backend=legion @2.3.1:")
