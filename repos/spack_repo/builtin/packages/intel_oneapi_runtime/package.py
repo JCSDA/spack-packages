@@ -39,7 +39,10 @@ class IntelOneapiRuntime(Package):
     ]
 
     # libifcore ABI
-    provides("fortran-rt", "libifcore@5", when="%oneapi@2021:")
+    # https://github.com/spack/spack/issues/51268
+    # https://github.com/spack/spack-packages/pull/1485
+    #provides("fortran-rt", "libifcore@5", when="%oneapi@2021:")
+    provides("fortran-rt", "libifcore@5")
     provides("sycl")
 
     conflicts("platform=windows", msg="IntelOneAPI can only be installed on Linux, and FreeBSD")
