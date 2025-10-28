@@ -54,7 +54,7 @@ class Ectrans(CMakePackage):
     # Add explicit dependency on newer cmake versions in order to apply patch
     # "find_lapack.patch", see below and https://github.com/ecmwf-ifs/ectrans/issues/316
     # Newer versions of ectrans (1.7.0+) also require cmake@3.25: by default.
-    depends_on("cmake@3.25:", type="build")
+    depends_on("cmake@3.25:", when="@1.5:", type="build")
 
     depends_on("ecbuild", type="build")
     depends_on("mpi", when="+mpi")
