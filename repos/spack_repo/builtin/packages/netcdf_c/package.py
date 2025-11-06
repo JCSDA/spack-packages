@@ -297,6 +297,16 @@ class NetcdfC(CMakePackage, AutotoolsPackage):
             "ncgen/CMakeLists.txt",
             string=True
         )
+        # https://github.com/Unidata/netcdf-c/issues/3199
+        filter_file(
+            "CHECK_FUNCTION_EXISTS(MPI_Comm_f2c  HAVE_MPI_COMM_F2C)",
+            """if(MPI_mpi_LIBRARY)
+  SET(CMAKE_REQUIRED_LIBRARIES ${MPI_mpi_LIBRARY} ${CMAKE_REQUIRED_LIBRARIES})
+endif()
+CHECK_FUNCTION_EXISTS(MPI_Comm_f2c  HAVE_MPI_COMM_F2C)""",
+            "CMakeLists.txt",
+            string = True
+        )
 
     def setup_run_environment(self, env: EnvironmentModifications) -> None:
         if self.spec.satisfies("@4.9.0:+shared"):
