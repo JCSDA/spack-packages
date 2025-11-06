@@ -358,6 +358,8 @@ class CMakeBuilder(AnyBuilder, cmake.CMakeBuilder):
             self.define("ENABLE_LARGE_FILE_SUPPORT", True),
             self.define_from_variant("NETCDF_ENABLE_LOGGING", "logging"),
         ]
+        if "+mpi" in self.pkg.spec:
+            base_cmake_args.append(self.define("NC_EXTRA_DEPS", "mpi"))
         if "+parallel-netcdf" in self.pkg.spec:
             base_cmake_args.append(self.define("ENABLE_PNETCDF", True))
         if self.pkg.spec.satisfies("@4.3.1:"):
