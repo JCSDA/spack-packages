@@ -18,6 +18,7 @@ class PyTorchgeo(PythonPackage):
     maintainers("adamjstewart", "calebrob6", "ashnair1")
 
     version("main", branch="main")
+    version("0.7.2", sha256="0597455c689c61fd1bdffc79357646292aac98681279a1d05536317a0d094b69")
     version("0.7.1", sha256="05f645868a6dff083d4d0529662bde1b502e1f33ef260ebc735065e05d84176e")
     version("0.7.0", sha256="4ba0e96ea826080f393b1bb719a3f8c364637112710b1ac38c56b9590a638e29")
     version("0.6.2", sha256="82f49f0d18d2c22cc70fc0690641e8dd60e4904a9c50d32c79ebd5020ac10fa7")
@@ -127,7 +128,7 @@ class PyTorchgeo(PythonPackage):
         depends_on("py-typing-extensions@4.5:", when="@0.7:")
 
         # Only part of lightning[pytorch-extra] we actually require.
-        depends_on("py-jsonargparse@4.26.1:+signatures", when="@0.5:")
+        depends_on("py-jsonargparse@4.25:+signatures", when="@0.5:")
 
         # Historical dependencies
         depends_on("py-omegaconf@2.1:", when="@:0.4.0")
@@ -145,6 +146,7 @@ class PyTorchgeo(PythonPackage):
         depends_on("py-h5py@3.6:", when="@0.6:")
         depends_on("py-h5py@3:", when="@0.5:")
         depends_on("py-h5py@2.6:")
+        depends_on("py-laspy@2.5.3:", when="@0.7.2:")
         depends_on("py-laspy@2:", when="@0.2:")
         depends_on("py-netcdf4@1.6.1:", when="@0.7:")
         depends_on("opencv@4.5.5:", when="@0.7:")
@@ -226,6 +228,7 @@ class PyTorchgeo(PythonPackage):
         depends_on("py-nbmake@1.3.3:", when="@0.4.1:")
         depends_on("py-nbmake@0.1:", when="@0.3.1:")
         depends_on("py-nbmake@0.1:1.1", when="@:0.3.0")
+        depends_on("py-packaging@20.9:", when="@0.7.2:")
         depends_on("py-pytest@7.3:", when="@0.6:")
         depends_on("py-pytest@6.2:", when="@0.5:")
         depends_on("py-pytest@6.1.2:")
@@ -238,6 +241,8 @@ class PyTorchgeo(PythonPackage):
 
     # https://github.com/microsoft/torchgeo/pull/1123
     conflicts("py-kornia@0.6.10:", when="@:0.4.0")
+    # https://github.com/torchgeo/torchgeo/pull/3052
+    conflicts("py-lightning@2.5.5:2.5")
     # https://github.com/microsoft/torchgeo/pull/2484
     conflicts("py-lightning@=2.5.0")
     # https://github.com/Lightning-AI/pytorch-lightning/issues/19977
