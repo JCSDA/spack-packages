@@ -288,6 +288,7 @@ class NetcdfC(CMakePackage, AutotoolsPackage):
 
     build_system("cmake", "autotools", default=default_build_system)
 
+    @when("build_system=cmake")
     def patch(self):
         """Fix bad code in ncgen/CMakeLists.txt that removes
         the rpath for dependencies like hdf5."""
