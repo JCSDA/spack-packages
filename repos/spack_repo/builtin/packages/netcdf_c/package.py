@@ -124,6 +124,20 @@ class NetcdfC(CMakePackage, AutotoolsPackage):
         when="@4.9.0:4.9.2",
     )
 
+    # https://github.com/Unidata/netcdf-c/issues/3199
+    patch("cmakelists_mpi_symbols.patch", when="build_system=cmake")
+
+    def patch(self):
+        """Fix bad code in ncgen/CMakeLists.txt that removes
+        the rpath for dependencies like hdf5."""
+        if self.spec.satisfies("build_system=cmake"):
+            filter_file(
+                "SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)",
+                "#SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)",
+                "ncgen/CMakeLists.txt",
+                string=True,
+            )
+
     variant("mpi", default=True, description="Enable parallel I/O for netcdf-4")
     variant("parallel-netcdf", default=False, description="Enable parallel I/O for classic files")
     variant("hdf4", default=False, description="Enable HDF4 support")
@@ -288,16 +302,6 @@ class NetcdfC(CMakePackage, AutotoolsPackage):
 
     build_system("cmake", "autotools", default=default_build_system)
 
-    def patch(self):
-        """Fix bad code in ncgen/CMakeLists.txt that removes
-        the rpath for dependencies like hdf5."""
-        filter_file(
-            "SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)",
-            "#SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)",
-            "ncgen/CMakeLists.txt",
-            string=True
-        )
-
     def setup_run_environment(self, env: EnvironmentModifications) -> None:
         if self.spec.satisfies("@4.9.0:+shared"):
             # Both HDF5 and NCZarr backends honor the same environment variable:
@@ -358,6 +362,8 @@ class CMakeBuilder(AnyBuilder, cmake.CMakeBuilder):
             self.define("ENABLE_LARGE_FILE_SUPPORT", True),
             self.define_from_variant("NETCDF_ENABLE_LOGGING", "logging"),
         ]
+        if any(self.spec.satisfies(s) for s in ["+mpi", "+parallel-netcdf", "^hdf5+mpi~shared"]):
+            base_cmake_args.append(self.define("CMAKE_C_COMPILER", self.spec["mpi"].mpicc))
         if "+parallel-netcdf" in self.pkg.spec:
             base_cmake_args.append(self.define("ENABLE_PNETCDF", True))
         if self.pkg.spec.satisfies("@4.3.1:"):
