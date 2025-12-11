@@ -212,14 +212,21 @@ class Met(AutotoolsPackage):
 
         return args
 
-    @run_after("install", when="platform=linux")
-    def fixup_rpaths(self):
-        # set rpaths of binaries Python's lib directory
-        rpaths = self.spec["python"].libs.directories
+    # Adding the Python rpaths to the MET binaries randomly causes
+    # segmentation faults for different versions of MET and for
+    # different compilers - set LD_LIBRARY_PATH instead below
+    # (https://github.com/JCSDA/spack-stack/issues/1839)
+    #@run_after("install", when="+python platform=linux")
+    #def fixup_rpaths(self):
+    #    # set rpaths of binaries Python's lib directory
+    #    rpaths = self.spec["python"].libs.directories
+    #
+    #    for binary in find(self.prefix.bin, "*"):
+    #        patchelf = Executable("patchelf")
+    #        patchelf("--add-rpath", ":".join(rpaths), binary)
 
-        for binary in find(self.prefix.bin, "*"):
-            patchelf = Executable("patchelf")
-            patchelf("--add-rpath", ":".join(rpaths), binary)
+    def setup_run_environment(self, env: EnvironmentModifications) -> None:
+        if self.spec.satisfies("+python"): 
+            for libpath in self.spec["python"].libs.directories:
+                env.append_path("LD_LIBRARY_PATH", libpath)
 
-#    def setup_run_environment(self, env: EnvironmentModifications) -> None:
-#        env.set('MET_BASE', self.prefix)
