@@ -32,6 +32,8 @@ class Harfbuzz(MesonPackage, AutotoolsPackage, CMakePackage):
     # Ref: https://github.com/harfbuzz/harfbuzz/blob/main/COPYING
     license("MIT-old", checked_by="wdconinc")
 
+    maintainers("AlexanderRichert-NOAA")
+
     version("11.5.1", sha256="972a60a8d274d49e70361da6920c3a73dfb0fb4387f6c6811906a47ba634d8a1")
     version("11.4.1", sha256="7aafab93115eb56cdc9a931ab7d19ff60d7f2937b599d140f17236f374e32698")
     version("11.3.3", sha256="e1fbca6b32a91ae91ecd9eb2ca8d47a5bfe2b1cb2e54855ab7a0b464919ef358")
@@ -66,36 +68,6 @@ class Harfbuzz(MesonPackage, AutotoolsPackage, CMakePackage):
     version(
         "2.9.1",
         sha256="0edcc980f526a338452180e701d6aba6323aef457b6686976a7d17ccbddc51cf",
-        deprecated=True,
-    )
-    version(
-        "2.6.8",
-        sha256="6648a571a27f186e47094121f0095e1b809e918b3037c630c7f38ffad86e3035",
-        deprecated=True,
-    )
-    version(
-        "2.3.1",
-        sha256="f205699d5b91374008d6f8e36c59e419ae2d9a7bb8c5d9f34041b9a5abcae468",
-        deprecated=True,
-    )
-    version(
-        "2.1.3",
-        sha256="613264460bb6814c3894e3953225c5357402915853a652d40b4230ce5faf0bee",
-        deprecated=True,
-    )
-    version(
-        "1.9.0",
-        sha256="11eca62bf0ac549b8d6be55f4e130946399939cdfe7a562fdaee711190248b00",
-        deprecated=True,
-    )
-    version(
-        "1.4.6",
-        sha256="21a78b81cd20cbffdb04b59ac7edfb410e42141869f637ae1d6778e74928d293",
-        deprecated=True,
-    )
-    version(
-        "0.9.37",
-        sha256="255f3b3842dead16863d1d0c216643d97b80bfa087aaa8fc5926da24ac120207",
         deprecated=True,
     )
 
@@ -141,6 +113,7 @@ class Harfbuzz(MesonPackage, AutotoolsPackage, CMakePackage):
 
     for plat in ["linux", "darwin", "freebsd"]:
         with when(f"platform={plat}"):
+            variant("gobject", default=False, description="Enable GObject introspection")
             variant(
                 "utils",
                 default=False,
@@ -205,12 +178,14 @@ class MesonBuilder(meson.MesonBuilder, SetupEnvironment):
     def meson_args(self):
         graphite2 = "enabled" if self.pkg.spec.satisfies("+graphite2") else "disabled"
         coretext = "enabled" if self.pkg.spec.satisfies("+coretext") else "disabled"
+        introspection = "enabled" if self.pkg.spec.satisfies("+gobject") else "disabled"
         config_args = [
             # disable building of gtk-doc files following #9885 and #9771
             "-Ddocs=disabled",
             "-Dfreetype=enabled",
             f"-Dgraphite2={graphite2}",
             f"-Dcoretext={coretext}",
+            f"-Dintrospection={introspection}",
         ]
 
         libs = []
@@ -241,6 +216,7 @@ class AutotoolsBuilder(autotools.AutotoolsBuilder, SetupEnvironment):
         args.append(f"GTKDOC_REBASE={true}")
         args.extend(self.with_or_without("graphite2"))
         args.extend(self.with_or_without("coretext"))
+        args.extend(self.with_or_without("gobject"))
 
         libs = []
         pc = which("pkg-config")
@@ -256,7 +232,7 @@ class AutotoolsBuilder(autotools.AutotoolsBuilder, SetupEnvironment):
 
 class CMakeBuilder(cmake.CMakeBuilder, SetupEnvironment):
     def cmake_args(self):
-        use_gobject = not IS_WINDOWS
+        use_gobject = self.spec.satisfies("+gobject")
         args = [
             self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
             self.define("HB_HAVE_FREETYPE", True),
