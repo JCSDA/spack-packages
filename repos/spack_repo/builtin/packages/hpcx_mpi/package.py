@@ -40,15 +40,15 @@ class HpcxMpi(Package):
         env.prepend_path("LD_LIBRARY_PATH", prefix.lib)
         env.set("OPAL_PREFIX", prefix)
 
-    def setup_dependent_build_environment(
-        self, env: EnvironmentModifications, dependent_spec: Spec
-    ) -> None:
-        self.make_base_environment(self.prefix, env)
-
     @property
     def libs(self):
         libraries = ["libmpi"]
         return find_libraries(libraries, root=self.prefix, shared=True, recursive=True)
+
+    def setup_dependent_build_environment(
+        self, env: EnvironmentModifications, dependent_spec: Spec
+    ) -> None:
+        self.make_base_environment(self.prefix, env)
 
     def setup_run_environment(self, env: EnvironmentModifications) -> None:
         self.make_base_environment(self.prefix, env)
