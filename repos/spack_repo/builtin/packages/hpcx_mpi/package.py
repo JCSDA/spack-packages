@@ -45,5 +45,10 @@ class HpcxMpi(Package):
     ) -> None:
         self.make_base_environment(self.prefix, env)
 
+    @property
+    def libs(self):
+        libraries = ["libmpi"]
+        return find_libraries(libraries, root=self.prefix, shared=True, recursive=True)
+
     def setup_run_environment(self, env: EnvironmentModifications) -> None:
         self.make_base_environment(self.prefix, env)
