@@ -82,6 +82,7 @@ class Gh(GoPackage):
         args.extend([f"-skip={skip_tests}", "./..."])
         return args
 
+    # https://github.com/spack/spack/issues/51898
     def setup_build_environment(self, env: EnvironmentModifications) -> None:
         # Disable building cgo (prevent "as: unrecognized option '--gdwarf-4'")
         env.set("CGO_ENABLED", "0")
