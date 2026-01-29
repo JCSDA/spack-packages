@@ -82,6 +82,10 @@ class Gh(GoPackage):
         args.extend([f"-skip={skip_tests}", "./..."])
         return args
 
+    def setup_build_environment(self, env: EnvironmentModifications) -> None:
+        # Disable building cgo (prevent "as: unrecognized option '--gdwarf-4'")
+        env.set("CGO_ENABLED", "0")
+
     @run_after("install")
     def install_completions(self):
         gh = Executable(self.prefix.bin.gh)
@@ -97,3 +101,4 @@ class Gh(GoPackage):
         mkdirp(zsh_completion_path(self.prefix))
         with open(zsh_completion_path(self.prefix) / "_gh", "w") as file:
             gh("completion", "-s", "zsh", output=file)
+
