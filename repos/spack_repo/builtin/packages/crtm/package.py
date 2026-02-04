@@ -130,3 +130,15 @@ class Crtm(CMakePackage):
         cmake_config_files = glob.glob(join_path(self.prefix, "cmake/crtm/*"))
         for srcpath in cmake_config_files:
             os.symlink(srcpath, join_path(self.prefix, "cmake", os.path.basename(srcpath)))
+
+    def check(self):
+        skipped_tests = None
+        # with when("@v2.4.1-jedi.2"):
+        #     skipped_tests = []
+
+        ctest = Executable(self.spec["cmake"].prefix.bin.ctest)
+        with working_dir(self.build_directory):
+            if skipped_tests:
+                ctest("-E", "|".join(skipped_tests))
+            else:
+                ctest()
