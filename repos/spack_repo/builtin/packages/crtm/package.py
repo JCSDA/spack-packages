@@ -139,6 +139,6 @@ class Crtm(CMakePackage):
         ctest = Executable(self.spec["cmake"].prefix.bin.ctest)
         with working_dir(self.build_directory):
             if skipped_tests:
-                ctest("-E", "|".join(skipped_tests))
+                ctest("--timeout", "120", "-E", "|".join(skipped_tests))
             else:
-                ctest()
+                ctest("--timeout", "120")
