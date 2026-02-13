@@ -31,6 +31,7 @@ class Crtm(CMakePackage):
 
     license("CC0-1.0")
 
+    version("3.1.3", sha256="4f72bb281d266063c902caa6613e508d6d80367c10ee4881dd67e08c146c9c33")
     version("3.1.2", sha256="a96598e5611c263fa80d6d6375a12d70d74389b261a8070515a6698e41563281")
     version(
         "3.1.1-build1", sha256="1ed49e594da5d3769cbaa52cc7fc19c1bb0325ee6324f6057227c31e2d95ca67"
@@ -76,7 +77,8 @@ class Crtm(CMakePackage):
     depends_on("fortran", type="build")
 
     depends_on("cmake@3.15:", type="build")
-    depends_on("git-lfs")
+    depends_on("cmake@3.20:", when="@3.1.3:", type="build")
+    depends_on("git-lfs", when="@:3.1.2")
     depends_on("netcdf-fortran", when="@2.4.0:")
     depends_on("netcdf-fortran", when="@v2.3")
     depends_on("netcdf-fortran", when="@v2.4")
@@ -87,6 +89,8 @@ class Crtm(CMakePackage):
     depends_on("crtm-fix@2.4.0.1_emc", when="@2.4.0.1 +fix")
     depends_on("crtm-fix@3.1.1", when="@3.1.1 +fix")
     depends_on("crtm-fix@3.1.2", when="@3.1.2 +fix")
+    # Note. crtm@3.1.3 uses crtm-fix@3.1.2
+    depends_on("crtm-fix@3.1.2", when="@3.1.3 +fix")
 
     depends_on("ecbuild", type=("build"), when="@v2.3")
     depends_on("ecbuild", type=("build"), when="@v2.4")
@@ -124,9 +128,24 @@ class Crtm(CMakePackage):
         if not self.run_tests:
             filter_file(r"add_subdirectory\(test\)", "# disable testing", "CMakeLists.txt")
 
+    @run_before("cmake")
+    def link_fixed_files(self):
+        if self.spec.satisfies("@3.1.2: +fix"):
+            symlink(
+                join_path(self.spec["crtm-fix"].prefix, "fix"),
+                join_path(self.stage.source_path, "fix"),
+            )
+
     @when("@3.1.1-build1")
     @run_after("install")
     def cmake_config_softlinks(self):
         cmake_config_files = glob.glob(join_path(self.prefix, "cmake/crtm/*"))
         for srcpath in cmake_config_files:
             os.symlink(srcpath, join_path(self.prefix, "cmake", os.path.basename(srcpath)))
+
+    def check(self):
+        # Until issues with fixed data organization are resolved, just run the basic test
+        # see https://github.com/JCSDA/spack-stack/issues/1910
+        ctest = Executable(self.spec["cmake"].prefix.bin.ctest)
+        with working_dir(self.build_directory):
+            ctest("--timeout", "120", "-R", "test_check_crtm")
