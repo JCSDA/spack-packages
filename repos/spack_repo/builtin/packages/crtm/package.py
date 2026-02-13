@@ -145,16 +145,7 @@ class Crtm(CMakePackage):
 
     def check(self):
         # Until issues with fixed data organization are resolved, just run the basic test
+        # see https://github.com/JCSDA/spack-stack/issues/1910
         ctest = Executable(self.spec["cmake"].prefix.bin.ctest)
         with working_dir(self.build_directory):
             ctest("--timeout", "120", "-R", "test_check_crtm")
-        # skipped_tests = None
-        # # with when("@v2.4.1-jedi.2"):
-        # #     skipped_tests = []
-        # 
-        # ctest = Executable(self.spec["cmake"].prefix.bin.ctest)
-        # with working_dir(self.build_directory):
-        #     if skipped_tests:
-        #         ctest("--timeout", "120", "-E", "|".join(skipped_tests))
-        #     else:
-        #         ctest("--timeout", "120")
