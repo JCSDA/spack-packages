@@ -18,7 +18,7 @@ class Crtm(CMakePackage):
 
     homepage = "https://www.jcsda.org/jcsda-project-community-radiative-transfer-model"
     git = "https://github.com/JCSDA/crtm.git"
-    url = "https://github.com/JCSDA/crtm/archive/refs/tags/v2.3.0.tar.gz"
+    url = "https://github.com/JCSDA/crtm/archive/refs/tags/v2.4.0.tar.gz"
 
     maintainers(
         "BenjaminTJohnson",
@@ -66,8 +66,6 @@ class Crtm(CMakePackage):
     version("2.4.0.1", tag="v2.4.0_emc.3", commit="7ecad4866c400d7d0db1413348ee225cfa99ff36")
     # REL-2.4.0_emc (v2.4.0 ecbuild does not work)
     version("2.4.0", commit="5ddd0d6b0138284764065feda73b5adf599082a2")
-    # Uses the tip of REL-2.3.0_emc branch
-    version("2.3.0", commit="99760e693ce3b90a3b3b0e97d80972b4dfb61196")
 
     variant(
         "fix", default=False, description='Download CRTM coefficient or "fix" files (several GBs).'
@@ -80,11 +78,9 @@ class Crtm(CMakePackage):
     depends_on("cmake@3.20:", when="@3.1.3:", type="build")
     depends_on("git-lfs", when="@:3.1.2")
     depends_on("netcdf-fortran", when="@2.4.0:")
-    depends_on("netcdf-fortran", when="@v2.3")
     depends_on("netcdf-fortran", when="@v2.4")
     depends_on("netcdf-fortran", when="@v3")
 
-    depends_on("crtm-fix@2.3.0_emc", when="@2.3.0 +fix")
     depends_on("crtm-fix@2.4.0_emc", when="@=2.4.0 +fix")
     depends_on("crtm-fix@2.4.0.1_emc", when="@2.4.0.1 +fix")
     depends_on("crtm-fix@3.1.1", when="@3.1.1 +fix")
@@ -92,12 +88,10 @@ class Crtm(CMakePackage):
     # Note. crtm@3.1.3 uses crtm-fix@3.1.2
     depends_on("crtm-fix@3.1.2", when="@3.1.3 +fix")
 
-    depends_on("ecbuild", type=("build"), when="@v2.3")
     depends_on("ecbuild", type=("build"), when="@v2.4")
     depends_on("ecbuild", type=("build"), when="@v3")
 
     conflicts("%oneapi", when="@2")
-    conflicts("%oneapi", when="@v2.3")
     conflicts("%oneapi", when="@v2.4-jedi")
     conflicts("%oneapi", when="@=v2.4.1-jedi")
     conflicts("%oneapi", when="@=v2.4.1-jedi.1")
