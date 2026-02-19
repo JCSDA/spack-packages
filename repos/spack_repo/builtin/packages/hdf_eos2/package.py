@@ -125,7 +125,7 @@ class HdfEos2(AutotoolsPackage):
     def flag_handler(self, name, flags):
         if name == "cflags":
             flags.append(self.compiler.cc_pic_flag)
-            if self.spec.compiler.name in ["apple-clang", "llvm", "intel-oneapi-compilers"]:
+            if self.spec.compiler.name in ["apple-clang", "llvm", "intel-oneapi-compilers", "gcc@14:"]:
                 flags.append("-Wno-error=implicit-function-declaration")
                 flags.append("-Wno-error=implicit-int")
 
