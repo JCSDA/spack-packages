@@ -125,12 +125,14 @@ class HdfEos2(AutotoolsPackage):
     def flag_handler(self, name, flags):
         if name == "cflags":
             flags.append(self.compiler.cc_pic_flag)
-            if self.spec.compiler.name in ["apple-clang", "llvm", "intel-oneapi-compilers", "gcc@14:"]:
+            if self.spec.compiler.name in ["apple-clang", "llvm", "intel-oneapi-compilers"]:
                 flags.append("-Wno-error=implicit-function-declaration")
                 flags.append("-Wno-error=implicit-int")
 
             # Testing shows we need one extra flag for gcc@14
             if self.spec.satisfies("%gcc@14:"):
+                flags.append("-Wno-error=implicit-function-declaration")
+                flags.append("-Wno-error=implicit-int")
                 flags.append("-Wno-error=incompatible-pointer-types")
         return flags, None, None
 
