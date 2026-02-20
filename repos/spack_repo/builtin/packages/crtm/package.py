@@ -142,4 +142,4 @@ class Crtm(CMakePackage):
         # see https://github.com/JCSDA/spack-stack/issues/1910
         ctest = Executable(self.spec["cmake"].prefix.bin.ctest)
         with working_dir(self.build_directory):
-            ctest("--timeout", "120", "-R", "test_check_crtm")
+            ctest("--timeout", "120")
