@@ -187,6 +187,8 @@ class PyNumpy(PythonPackage):
         depends_on("pkgconfig", when="@1.26.0:1.26.3")
 
     with default_args(type=("build", "run")):
+        # https://github.com/spack/spack-packages/issues/3695
+        depends_on("py-setuptools@:73", when="@:1.26")
         depends_on("py-setuptools@:63", when="@:1.25")
         depends_on("py-setuptools@:59", when="@:1.22.1")
 
