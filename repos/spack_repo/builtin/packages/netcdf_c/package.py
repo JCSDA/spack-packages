@@ -177,6 +177,7 @@ class NetcdfC(CMakePackage, AutotoolsPackage):
     variant("szip", default=True, description="Enable Szip compression plugin")
     variant("blosc", default=True, description="Enable Blosc compression plugin")
     variant("zstd", default=True, description="Enable Zstandard compression plugin")
+
     # JCSDA fork only:
     variant("parallel_tests", default=False, description="Run parallel tests", when="+mpi")
 
