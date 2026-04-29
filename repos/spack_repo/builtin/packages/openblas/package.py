@@ -345,6 +345,19 @@ class Openblas(CMakePackage, MakefilePackage):
 
     build_system("makefile", "cmake", default="makefile")
 
+    def patch(self):
+        if self.spec.satisfies("%fortran=nag platform=darwin"):
+            filter_file(
+                r"echo \\\"\\\" \| \$\{CMAKE_Fortran_COMPILER\} -o dummy\.o -c -x f95-cpp-input -",
+                r'echo \"\" > dummy.f90 && ${CMAKE_Fortran_COMPILER} -o dummy.o -c dummy.f90',
+                "CMakeLists.txt",
+            )
+            filter_file(
+                r"\$\{CMAKE_Fortran_COMPILER\} -fpic -shared -Wl,-all_load",
+                r"${CMAKE_Fortran_COMPILER} -PIC -dynamiclib",
+                "CMakeLists.txt",
+            )
+
     def flag_handler(self, name, flags):
         spec = self.spec
         if name == "cflags":
