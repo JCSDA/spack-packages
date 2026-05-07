@@ -1,7 +1,6 @@
 # Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import re
 
 from spack_repo.builtin.build_systems.autotools import AutotoolsPackage
 from spack_repo.builtin.build_systems.gnu import GNUMirrorPackage
@@ -37,28 +36,18 @@ class Libiconv(AutotoolsPackage, GNUMirrorPackage):
     # We cannot set up a warning for gets(), since gets() is not part
     # of C11 any more and thus might not exist.
     patch("gets.patch", when="@1.14")
+
+    # Error for declaration of mbrtowc without a prototype.
+    # https://gitweb.git.savannah.gnu.org/gitweb/?p=libiconv.git;a=commit;h=e46dee2f581c11
+    patch(
+        "loop_wchar_9eb508.patch",
+        when="@:1.17",
+        sha256="e0145a14e9fed1d9f07003a4772db916faa8cbb7c5273880a38d7c2e64d4103c",
+    )
+
     provides("iconv")
 
     conflicts("@1.14", when="%gcc@5:")
-
-    # Don't build on Darwin to avoid problems with _iconv vs _libiconv; use native package - see
-    # https://stackoverflow.com/questions/57734434/libiconv-or-iconv-undefined-symbol-on-mac-osx
-    conflicts("platform=darwin")
-
-    # For spack external find
-    executables = ["^iconv$"]
-
-    @classmethod
-    def determine_version(cls, exe):
-        # We only need to find libiconv on macOS to avoid problems with _iconv vs _libiconv - see
-        # https://stackoverflow.com/questions/57734434/libiconv-or-iconv-undefined-symbol-on-mac-osx
-        macos_pattern = re.compile("\(GNU libiconv (\w+\.\w+)\)")  # noqa: W605
-        version_string = Executable(exe)("--version", output=str, error=str)
-        match = macos_pattern.search(version_string)
-        version = None
-        if match:
-            version = match.group(1)
-        return version
 
     def configure_args(self):
         args = ["--enable-extra-encodings"]
@@ -76,6 +65,15 @@ class Libiconv(AutotoolsPackage, GNUMirrorPackage):
         # configure script believe that the compiler does not support a flag that allows warnings:
         if self.spec.satisfies("@1.17:%nvhpc"):
             args.append("gl_cv_cc_wallow=none")
+
+        # Intel oneAPI icx incorrectly marks glibc's error() as noreturn,
+        # causing the gnulib gl_cv_func_working_error configure test to
+        # infinite-loop and consume unbounded memory.
+        # Fix available in icx 2026, but this workaround is needed for
+        # all versions of icx up to 2025.
+        # https://community.intel.com/t5/Intel-oneAPI-DPC-C-Compiler/All-versions-of-icx-miscompile-error-0-resulting-in-segfaults/m-p/1744208
+        if self.spec.satisfies("%oneapi@:2025"):
+            args.append("gl_cv_func_working_error=yes")
 
         # A hack to patch config.guess in the libcharset sub directory
         copy("./build-aux/config.guess", "libcharset/build-aux/config.guess")
