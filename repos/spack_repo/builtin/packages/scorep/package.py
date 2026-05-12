@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack_repo.builtin.build_systems.autotools import AutotoolsPackage
+from spack.aliases import BUILTIN_TO_LEGACY_COMPILER
 
 from spack.package import *
 
@@ -194,7 +195,13 @@ class Scorep(AutotoolsPackage):
     # Handle any mapping of Spack compiler names to Score-P args
     # This should continue to exist for backward compatibility
     def clean_compiler(self, compiler):
-        renames = {"cce": "cray", "rocmcc": "amdclang"}
+        renames = {
+            "cce": "cray",
+            "intel-oneapi-compilers": "oneapi",
+            "intel-oneapi-compilers-classic": "intel",
+            "llvm": "clang",
+            "llvm-amdgpu": "amdclang",
+        }
         if compiler in renames:
             return renames[compiler]
         return compiler
@@ -207,6 +214,8 @@ class Scorep(AutotoolsPackage):
             "--enable-shared",
         ]
 
+        # cname must match one of these:
+        # --with-nocross-compiler-suite=(gcc|ibm|intel|oneapi|nvhpc|pgi|clang|aocc|amdclang|cray)
         cname = self.clean_compiler(spec.compiler.name)
         config_args.extend(["--with-nocross-compiler-suite={0}".format(cname)])
 
