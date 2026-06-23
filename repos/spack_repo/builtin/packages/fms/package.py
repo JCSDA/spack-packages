@@ -170,7 +170,7 @@ class Fms(CMakePackage):
 
             # oneapi ifort / ifx aggressively optimize floating point exception checks
             if self.spec.satisfies("%oneapi@2023:"):
-                fflags = "-fp-model precise -fp-speculation=safe"
+                fflags = "-fp-model=precise -fp-speculation=safe"
                 args.extend(["-DCMAKE_Fortran_FLAGS=%s" % fflags])
         ]
 
