@@ -2,15 +2,14 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import os
 import re
 
-from spack_repo.builtin.build_systems.meson import MesonPackage
+from spack_repo.builtin.build_systems import autotools, meson
 
 from spack.package import *
 
 
-class Libfuse(MesonPackage):
+class Libfuse(autotools.AutotoolsPackage, meson.MesonPackage):
     """The reference implementation of the Linux FUSE (Filesystem in
     Userspace) interface"""
 
@@ -19,6 +18,7 @@ class Libfuse(MesonPackage):
 
     keep_werror = "all"
 
+    version("3.18.2", sha256="55a97cfd8661a9b42ff0123b44af52cac49feaec36987f4d968c046f93b42e1d")
     version("3.16.2", sha256="1bc306be1a1f4f6c8965fbdd79c9ccca021fdc4b277d501483a711cbd7dbcd6c")
     version("3.11.0", sha256="25a00226d2d449c15b2f08467d6d5ebbb2a428260c4ab773721c32adbc6da072")
     version("3.10.5", sha256="e73f75e58da59a0e333d337c105093c496c0fd7356ef3a5a540f560697c9c4e6")
@@ -59,14 +59,19 @@ class Libfuse(MesonPackage):
     )
     variant("utils", default=True, description="Build and install helper and example programs.")
 
+    build_system(
+        conditional("meson", when="@3:"), conditional("autotools", when="@:2"), default="meson"
+    )
+
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
 
-    depends_on("autoconf", type="build", when="@:2")
-    depends_on("automake", type="build", when="@:2")
-    depends_on("libtool", type="build", when="@:2")
-    depends_on("gettext", type="build", when="@:2")
-    depends_on("gmake", type="build")
+    with when("build_system=autotools"):
+        depends_on("autoconf", type="build")
+        depends_on("automake", type="build")
+        depends_on("libtool", type="build")
+        depends_on("gettext", type="build")
+        depends_on("gmake", type="build")
 
     provides("fuse")
     conflicts("+useroot", when="~system_install", msg="useroot requires system_install")
@@ -112,6 +117,8 @@ class Libfuse(MesonPackage):
         match = re.search(r"^fusermount.*version: (\S+)", output)
         return match.group(1) if match else None
 
+
+class MesonBuilder(meson.MesonBuilder):
     def meson_args(self):
         args = []
 
@@ -139,39 +146,16 @@ class Libfuse(MesonPackage):
 
         return args
 
-    # Before libfuse 3.x this was an autotools package
-    @when("@:2")
-    def meson(self, spec, prefix):
-        ar_args = ["-ivf"]
-        for dep in self.spec.dependencies(deptype="build"):
-            if os.path.exists(dep.prefix.share.aclocal):
-                ar_args.extend(["-I", dep.prefix.share.aclocal])
-        autoreconf(*ar_args)
 
+class AutotoolsBuilder(autotools.AutotoolsBuilder):
+    # patches that change configure.ac require this
+    force_autoreconf = True
+
+    def configure_args(self):
         args = [
-            "--prefix={0}".format(prefix),
             "MOUNT_FUSE_PATH={0}".format(self.prefix.sbin),
             "UDEV_RULES_PATH={0}".format(self.prefix.etc),
             "INIT_D_PATH={0}".format(self.prefix.etc),
         ]
 
-        args.append(
-            "--enable-static"
-            if self.spec.satisfies("default_library=static")
-            else "--disable-static"
-        )
-        args.append(
-            "--enable-shared"
-            if self.spec.satisfies("default_library=shared")
-            else "--disable-shared"
-        )
-
-        configure(*args)
-
-    @when("@:2")
-    def build(self, spec, prefix):
-        make()
-
-    @when("@:2")
-    def install(self, spec, prefix):
-        make("install")
+        return args

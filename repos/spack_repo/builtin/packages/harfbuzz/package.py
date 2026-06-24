@@ -130,17 +130,7 @@ class Harfbuzz(MesonPackage, AutotoolsPackage, CMakePackage):
     depends_on("zlib-api")
     depends_on("graphite2", when="+graphite2")
 
-    conflicts(
-        "%intel", when="@2.3.1:", msg="harfbuzz-2.3.1 does not build with the Intel compiler"
-    )
-
-    def url_for_version(self, version):
-        if self.spec.satisfies("@2.3.2:"):
-            url = "https://github.com/harfbuzz/harfbuzz/releases/download/{0}/harfbuzz-{0}.tar.xz"
-        else:
-            url = "http://www.freedesktop.org/software/harfbuzz/release/harfbuzz-{0}.tar.bz2"
-
-        return url.format(version)
+    conflicts("%intel", msg="harfbuzz-2.3.1 does not build with the Intel compiler")
 
     # Function borrowed from superlu
     def flag_handler(self, name, flags):
@@ -209,7 +199,7 @@ class AutotoolsBuilder(autotools.AutotoolsBuilder, SetupEnvironment):
 
         # disable building of gtk-doc files following #9771
         args.append("--disable-gtk-doc-html")
-        true = which("true")
+        true = which("true", required=True)
         args.append(f"GTKDOC_CHECK={true}")
         args.append(f"GTKDOC_CHECK_PATH={true}")
         args.append(f"GTKDOC_MKPDF={true}")

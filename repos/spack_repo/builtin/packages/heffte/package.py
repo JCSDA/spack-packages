@@ -29,14 +29,8 @@ class Heffte(CMakePackage, CudaPackage, ROCmPackage):
     version("2.3.0", sha256="63db8c9a8822211d23e29f7adf5aa88bb462c91d7a18c296c3ef3a06be8d6171")
     version("2.2.0", sha256="332346d5c1d1032288d09839134c79e4a9704e213a2d53051e96c3c414c74df0")
     version("2.1.0", sha256="63b8ea45a220afc4fa0b14769c0dd291e614a2fe9d5a91c50d28f16ee29b3f1c")
-    version(
-        "2.0.0",
-        sha256="b575fafe19a635265904ca302d48e778341b1567c055ea7f2939c8c6718f7212",
-        deprecated=True,
-    )
 
     patch("cmake-magma-v230.patch", when="@2.3.0")
-    patch("fortran200.patch", when="@2.0.0")
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
@@ -73,6 +67,8 @@ class Heffte(CMakePackage, CudaPackage, ROCmPackage):
 
     depends_on("fftw@3.3.8:", when="+fftw", type=("build", "run"))
     depends_on("intel-oneapi-mkl", when="+mkl", type=("build", "run"))
+    # mkl renamed dfti.hpp to dft.hpp in 2026.0, which breaks heffte@2.4.1 and earlier
+    conflicts("^intel-oneapi-mkl@2026.0:", when="@:2.4.1")
     depends_on("cuda@8.0:", when="+cuda", type=("build", "run"))
     depends_on("hip@3.8.0:", when="+rocm", type=("build", "run"))
     depends_on("rocfft@3.8.0:", when="+rocm", type=("build", "run"))
@@ -172,9 +168,9 @@ class Heffte(CMakePackage, CudaPackage, ROCmPackage):
         # Provide the root directory of the MPI installation.
         options.append(self.define("MPI_HOME", self.spec["mpi"].prefix))
 
-        cmake = which(self.spec["cmake"].prefix.bin.cmake)
+        cmake = which(self.spec["cmake"].prefix.bin.cmake, required=True)
         cmake(*options)
 
-        make = which("make")
+        make = which("make", required=True)
         make()
         make("test")
