@@ -50,22 +50,22 @@ class PyPyresample(PythonPackage):
     depends_on("py-setuptools", when="@1.34.0:", type="build")
     #depends_on("py-setuptools@38.4:", when="@0.16:", type=("build", "run"))
     #depends_on("py-setuptools@42:", when="@0.17:", type=("build", "run"))
-    depends_on("py-setuptools-scm", type="build")
+#    depends_on("py-setuptools-scm", type="build")
     #depends_on("py-setuptools-scm@7:", when="@2023.7.0:", type="build")
     #depends_on("py-setuptools-scm@3.4:+toml", when="@0.17:2022.3.0", type="build")
     #depends_on("py-setuptools-scm-git-archive", when="@0.17:2022.3.0", type="build")
 
     depends_on("python@3.11:", when="@1.34.0:", type=("build", "run"))
 
-    depends_on("py-numpy@2:", when="@1.35.0", type=("build", "run"))
-    depends_on("py-numpy@2:2.3", when="@1.34.0:1.34.2", type=("build", "run"))
+#    depends_on("py-numpy@2:", when="@1.35.0", type=("build", "run"))
+#    depends_on("py-numpy@2:2.3", when="@1.34.0:1.34.2", type=("build", "run"))
 
 
-    depends_on("py-pyproj@3.0:", type=("build", "run"))
+#    depends_on("py-pyproj@3.0:", type=("build", "run"))
 
-    depends_on("py-pykdtree@1.3.1:", type=("build", "run"))
+#    depends_on("py-pykdtree@1.3.1:", type=("build", "run"))
 
-    depends_on("py-shapely", type=("build", "run"))
+#    depends_on("py-shapely", type=("build", "run"))
 
     ##
 
