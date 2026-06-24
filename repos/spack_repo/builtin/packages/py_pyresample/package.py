@@ -57,15 +57,15 @@ class PyPyresample(PythonPackage):
 
     depends_on("python@3.11:", when="@1.34.0:", type=("build", "run"))
 
-#    depends_on("py-numpy@2:", when="@1.35.0", type=("build", "run"))
-#    depends_on("py-numpy@2:2.3", when="@1.34.0:1.34.2", type=("build", "run"))
+    depends_on("py-numpy@2:", when="@1.35.0", type=("build", "run"))
+    depends_on("py-numpy@2:2.3", when="@1.34.0:1.34.2", type=("build", "run"))
 
 
-#    depends_on("py-pyproj@3.0:", type=("build", "run"))
+    depends_on("py-pyproj@3.0:", type=("build", "run"))
 
-#    depends_on("py-pykdtree@1.3.1:", type=("build", "run"))
+    depends_on("py-pykdtree@1.3.1:", type=("build", "run"))
 
-#    depends_on("py-shapely", type=("build", "run"))
+    depends_on("py-shapely", type=("build", "run"))
 
     ##
 
