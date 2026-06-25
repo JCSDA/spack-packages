@@ -42,7 +42,6 @@ class Met(AutotoolsPackage):
     variant("modis", default=False, description="Enable compilation of modis")
     variant("graphics", default=False, description="Enable compilation of mode_graphics")
 
-    # JCSDA fork only
     variant(
         "shared-intel",
         default=False,
@@ -216,8 +215,8 @@ class Met(AutotoolsPackage):
     # segmentation faults for different versions of MET and for
     # different compilers - set LD_LIBRARY_PATH instead below
     # (https://github.com/JCSDA/spack-stack/issues/1839)
-    #@run_after("install", when="+python platform=linux")
-    #def fixup_rpaths(self):
+    # @run_after("install", when="+python platform=linux")
+    # def fixup_rpaths(self):
     #    # set rpaths of binaries Python's lib directory
     #    rpaths = self.spec["python"].libs.directories
     #
@@ -226,7 +225,6 @@ class Met(AutotoolsPackage):
     #        patchelf("--add-rpath", ":".join(rpaths), binary)
 
     def setup_run_environment(self, env: EnvironmentModifications) -> None:
-        if self.spec.satisfies("+python"): 
+        if self.spec.satisfies("+python"):
             for libpath in self.spec["python"].libs.directories:
                 env.append_path("LD_LIBRARY_PATH", libpath)
-

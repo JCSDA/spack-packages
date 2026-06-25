@@ -19,6 +19,8 @@ class RDataTable(RPackage):
 
     license("MPL-2.0-no-copyleft-exception")
 
+    version("1.18.2.1", sha256="7663893a84b3e22ff23efb4658bf7809ea4ff5551659cae96f264ae1a2b815a2")
+    version("1.17.8", sha256="17f24496d548914fdac2b8ed00c7272f2e191ee32eb6bb8336f9beb6691330e0")
     version("1.15.4", sha256="ab8065ff946d59ecaaf5eaf91a975495c07c30caad97a71205c72e41a740cb53")
     version("1.14.8", sha256="14b2ce5367df9c9bb58f373555066f5dcb629c156149b5565de36d69557139fd")
     version("1.14.4", sha256="4862a7c26e8309108fd1f5296616407b9ff9e4e1be5cdedcb717f114c2e348f0")
@@ -44,7 +46,10 @@ class RDataTable(RPackage):
     depends_on("c", type="build")
     depends_on("cxx", type="build")
 
+    depends_on("r@3.4.0:", type=("build", "run"), when="@1.18:")
+    depends_on("r@3.3.0:", type=("build", "run"), when="@1.17:")
     depends_on("r@3.1.0:", type=("build", "run"))
+
     depends_on("zlib-api")
     depends_on("llvm-openmp", when="platform=darwin %apple-clang", type=("build", "run"))
 

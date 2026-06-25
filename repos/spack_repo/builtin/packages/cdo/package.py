@@ -21,6 +21,26 @@ class Cdo(AutotoolsPackage):
     maintainers("skosukhin", "Try2Code")
 
     version(
+        "2.6.1",
+        sha256="ccf5f3bd5800f703c031bb5b10ae0cd3feac34d8eba7956661ff1ba6deb5985f",
+        url="https://code.mpimet.mpg.de/attachments/download/30210/cdo-2.6.1.tar.gz",
+    )
+    version(
+        "2.6.0",
+        sha256="752d5cda6fa3fdb8a04dcea16af5918e5f9f54657d9a5d2e35ae34f5755c31d8",
+        url="https://code.mpimet.mpg.de/attachments/download/30182/cdo-2.6.0.tar.gz",
+    )
+    version(
+        "2.5.4",
+        sha256="c7fc17d3eda8c216edb2f5e36c8ab32bcaeeb6b6f16296246f065c576d4efad2",
+        url="https://code.mpimet.mpg.de/attachments/download/30128/cdo-2.5.4.tar.gz",
+    )
+    version(
+        "2.5.3",
+        sha256="470fee8f4d2b4eddf9ec82d0adccf1f6b4821ddf34b33bfe6b7069b6b6457b40",
+        url="https://code.mpimet.mpg.de/attachments/download/30045/cdo-2.5.3.tar.gz",
+    )
+    version(
         "2.5.2",
         sha256="3b28da72d75547663b1b9b08332bfe3f884d27742d0eeeb7f3c8b2c70f521fa9",
         url="https://code.mpimet.mpg.de/attachments/download/29938/cdo-2.5.2.tar.gz",
@@ -202,10 +222,7 @@ class Cdo(AutotoolsPackage):
 
     variant("netcdf", default=True, description="Enable NetCDF support")
     variant(
-        "grib2",
-        default="eccodes",
-        values=("eccodes", "grib-api", "none"),
-        description="Specify GRIB2 backend",
+        "grib2", default="eccodes", values=("eccodes", "none"), description="Specify GRIB2 backend"
     )
     variant(
         "external-grib1",
@@ -238,7 +255,6 @@ class Cdo(AutotoolsPackage):
     # Same in case hdf5 is used in the frontend
     depends_on("hdf5+threadsafe", when="+hdf5")
 
-    depends_on("grib-api", when="grib2=grib-api")
     depends_on("eccodes", when="grib2=eccodes")
 
     depends_on("szip", when="+szip")
@@ -302,14 +318,16 @@ class Cdo(AutotoolsPackage):
                 flags["LIBS"].append(eccodes_libs.link_flags)
                 if not is_system_path(eccodes_spec.prefix):
                     flags["LDFLAGS"].append(eccodes_libs.search_flags)
-                    if eccodes_spec.satisfies("~shared"):
-                        jpeglib = eccodes_spec.variants["jp2k"].value
-                        flags["LIBS"].append(self.spec[jpeglib].libs.link_flags)
-                        flags["LDFLAGS"].append(self.spec[jpeglib].libs.ld_flags)
-        elif self.spec.variants["grib2"].value == "grib-api":
-            config_args.append("--with-grib_api=" + yes_or_prefix("grib-api"))
-            if self.spec.satisfies("@1.9:"):
-                config_args.append("--without-eccodes")
+# DH* not in upstream 2026/06/02
+#                    if eccodes_spec.satisfies("~shared"):
+#                        jpeglib = eccodes_spec.variants["jp2k"].value
+#                        flags["LIBS"].append(self.spec[jpeglib].libs.link_flags)
+#                        flags["LDFLAGS"].append(self.spec[jpeglib].libs.ld_flags)
+#        elif self.spec.variants["grib2"].value == "grib-api":
+#            config_args.append("--with-grib_api=" + yes_or_prefix("grib-api"))
+#            if self.spec.satisfies("@1.9:"):
+#                config_args.append("--without-eccodes")
+# *DH
         else:
             config_args.append("--without-grib_api")
             if self.spec.satisfies("@1.9:"):

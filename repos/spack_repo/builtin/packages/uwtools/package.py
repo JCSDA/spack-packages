@@ -39,7 +39,6 @@ class Uwtools(PythonPackage):
     depends_on("py-setuptools", type="build")
     depends_on("py-f90nml@1.4")
     depends_on("py-jinja2@3.1")
-    depends_on("iotaa@0.8", when="@:2.5")
     depends_on("iotaa@1.1", when="@2.6")
     depends_on("iotaa@1.2", when="@2.7")
     depends_on("iotaa@1.3:2.0", when="@2.8:")
@@ -50,6 +49,6 @@ class Uwtools(PythonPackage):
     depends_on("py-lxml@5.3", when="@:2.6")
     depends_on("py-python-dateutil@2.9:", when="@2.8:")
     depends_on("py-pyyaml@6.0")
-    depends_on("py-requests@2.32", when="@2.6:")
+    depends_on("py-requests@2.32")
 
     build_directory = "src"

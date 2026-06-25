@@ -15,6 +15,8 @@ class Gmp(AutotoolsPackage, GNUMirrorPackage):
     homepage = "https://gmplib.org"
     gnu_mirror_path = "gmp/gmp-6.1.2.tar.bz2"
 
+    maintainers("alalazo")
+
     license("LGPL-3.0-or-later OR GPL-2.0-or-later")
 
     version("6.3.0", sha256="ac28211a7cfb609bae2e2c8d6058d66c8fe96434f740cf6fe2e47b000d1c20cb")
@@ -48,6 +50,9 @@ class Gmp(AutotoolsPackage, GNUMirrorPackage):
     # avoid using register x18 on aarch64 machines to prevent segfaults
     # https://gmplib.org/repo/gmp/raw-rev/5f32dbc41afc
     patch("avoid-x18.diff", when="@6.2.1")
+
+    # https://gmplib.org/repo/gmp/rev/8e7bb4ae7a18
+    patch("gcc15.patch", when="@6.1: %gcc@15:")
 
     # gmp's configure script seems to be broken; it sometimes misdetects
     # shared library support. Regenerating it fixes the issue.
