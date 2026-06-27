@@ -42,3 +42,11 @@ class PyGraphqlCore(PythonPackage):
     depends_on("py-six@1.10.0:", type=("build", "run"), when="@2.3.2")
     depends_on("py-promise@2.3:2", type=("build", "run"), when="@2.3.2")
     depends_on("py-rx@1.6:1", type=("build", "run"), when="@2.3.2")
+
+    def url_for_version(self, version):
+        url = "https://files.pythonhosted.org/packages/source/g/graphql-core/{0}-{1}.tar.gz"
+        if version >= Version("3.2.5"):
+            prefix = "graphql_core"
+        else:
+            prefix = "graphql-core"
+        return url.format(prefix, version)
