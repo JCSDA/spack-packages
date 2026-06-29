@@ -25,14 +25,6 @@ class PyGraphqlCore(PythonPackage):
     version("3.0.5", sha256="51f7dab06b5035515b23984f6fcb677ed909b56c672152699cca32e03624992e")
     version("2.3.2", sha256="aac46a9ac524c9855910c14c48fc5d60474def7f99fd10245e76608eba7af746")
 
-    def url_for_version(self, version):
-        url = "https://files.pythonhosted.org/packages/source/g/graphql-core/{0}-{1}.tar.gz"
-        if version >= Version("3.2.5"):
-            prefix = "graphql_core"
-        else:
-            prefix = "graphql-core"
-        return url.format(prefix, version)
-
     depends_on("python@3.6:3", type=("build", "run"))
     depends_on("py-poetry-core@1:2", when="@3.2:", type="build")
     depends_on("py-poetry-core@1", when="@3:3.1", type="build")
