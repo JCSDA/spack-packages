@@ -17,6 +17,9 @@ class PyCachetools(PythonPackage):
 
     license("MIT")
 
+    version("7.1.4", sha256="437f55a4e0c1b01a4f3077cc470e6991d47430970e36fbcb77e2be0df4fc1cd6")
+    version("7.1.3", sha256="135cfe944bc3c1e805505f65dae0bef375a2f96261171ab66c79ef77d0bda39d")
+    version("7.1.2", sha256="c1373e3cad0933dfb46bb04d04ef67b5204f8220eb906096dd89a76196053d57")
     version("7.1.1", sha256="27bdf856d68fd3c71c26c01b5edc312124ed427524d1ddb31aa2b7746fe20d4b")
     version("6.2.6", sha256="16c33e1f276b9a9c0b49ab5782d901e3ad3de0dd6da9bf9bcd29ac5672f2f9e6")
     version("6.2.4", sha256="82c5c05585e70b6ba2d3ae09ea60b79548872185d2f24ae1f2709d37299fd607")
