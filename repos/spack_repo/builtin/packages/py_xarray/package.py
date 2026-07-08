@@ -71,10 +71,6 @@ class PyXarray(PythonPackage):
 
     with default_args(type=("build", "run")):
         depends_on("python@3.11:", when="@2025.7:")
-
-        #depends_on("py-numpy@2:", when="@2024.7:")
-        #depends_on("py-numpy@1.23:1.26", when="@:2024.7")
-
         depends_on("py-numpy@1.26:", when="@2025.7:")
         depends_on("py-numpy@1.23:", when="@2024.7:")
         depends_on("py-numpy@1.21:", when="@2023.7:")
@@ -91,21 +87,10 @@ class PyXarray(PythonPackage):
         depends_on("py-packaging@23.1:", when="@2024.7:")
         depends_on("py-packaging@21.3:", when="@2023.7:")
         depends_on("py-packaging@20:", when="@0.21:")
-
-        #depends_on("py-pandas@2.2:", when="@2024.7:")
-        #depends_on("py-pandas@2.1:", when="@2025.6:")
-        #depends_on("py-pandas@2.0:2.1", when="@2024.7:2025.6")
-        #depends_on("py-pandas@1.4:2.1", when="@:2023.7")
-
         depends_on("py-pandas@2.2:", when="@2025.7:")
         depends_on("py-pandas@2.0:2.1", when="@2024.7:2025.6")
         depends_on("py-pandas@1.4:2.1", when="@2023.7:2024.6")
         depends_on("py-pandas@1.1:", when="@0.20:")
-
-        #depends_on("py-pandas@2.2:", when="@2025.7:")
-        #depends_on("py-pandas@2.0:2.1", when="@2024.7:")
-        #depends_on("py-pandas@1.4:2.1", when="@2023.7:")
-        #depends_on("py-pandas@1.1:", when="@0.20:")
         depends_on("py-pandas@1:", when="@0.18:")
         depends_on("py-pandas@0.25:", when="@0.15:")
         depends_on("py-pandas@0.24:", when="@0.14.0")
