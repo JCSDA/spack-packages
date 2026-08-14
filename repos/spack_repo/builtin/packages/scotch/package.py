@@ -183,6 +183,13 @@ class CMakeBuilder(cmake.CMakeBuilder):
             c_flags.append("-DINTSIZE32")
             args.append(self.define("CMAKE_C_FLAGS", " ".join(c_flags)))
 
+        # oneapi C and Fortran compilers aggressively optimize floating point exception checks
+        if self.spec.satisfies("%oneapi@2023:"):
+            fflags = "-fp-model=precise -fp-speculation=safe"
+            args.extend(["-DCMAKE_Fortran_FLAGS=%s" % fflags])
+            cflags = "-O3 -fp-model=precise -fp-speculation=safe"
+            args.extend(["-DCMAKE_C_FLAGS_RELEASE=%s" % cflags])
+
         return args
 
     def is_64bit(self):
