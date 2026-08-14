@@ -185,10 +185,9 @@ class CMakeBuilder(cmake.CMakeBuilder):
 
         # oneapi C and Fortran compilers aggressively optimize floating point exception checks
         if self.spec.satisfies("%oneapi@2023:"):
-            fflags = "-fp-model=precise -fp-speculation=safe"
-            args.extend(["-DCMAKE_Fortran_FLAGS=%s" % fflags])
-            cflags = "-O3 -fp-model=precise -fp-speculation=safe"
-            args.extend(["-DCMAKE_C_FLAGS_RELEASE=%s" % cflags])
+            fcflags = "-fp-model=precise -fp-speculation=safe"
+            args.extend(["-DCMAKE_Fortran_FLAGS=%s" % fcflags])
+            args.extend(["-DCMAKE_C_FLAGS_RELEASE=%s" % fcflags])
 
         return args
 
