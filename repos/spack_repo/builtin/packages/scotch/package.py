@@ -45,7 +45,7 @@ class Scotch(CMakePackage, MakefilePackage):
     version("5.1.10b", sha256="54c9e7fafefd49d8b2017d179d4f11a655abe10365961583baaddc4eeb6a9add")
 
     build_system("cmake", conditional("makefile", when="@:6"), default="cmake")
-    conflicts("build_system=makefile", when="@7:")
+    conflicts("build_system=makefile", when="%oneapi")
 
     variant("threads", default=True, description="use POSIX Pthreads within Scotch and PT-Scotch")
     variant(
