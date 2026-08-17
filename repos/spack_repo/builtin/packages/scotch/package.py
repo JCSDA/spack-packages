@@ -187,7 +187,7 @@ class CMakeBuilder(cmake.CMakeBuilder):
         if self.spec.satisfies("%oneapi@2023:"):
             fcflags = "-fp-model=precise -fp-speculation=safe"
             args.extend(["-DCMAKE_Fortran_FLAGS=%s" % fcflags])
-            args.extend(["-DCMAKE_C_FLAGS_RELEASE=%s" % fcflags])
+            args.extend(["-DCMAKE_C_FLAGS=%s" % fcflags])
 
         return args
 
