@@ -64,6 +64,11 @@ class Ip(CMakePackage):
 
     conflicts("+shared ~pic")
 
+    # JCSDA repo only:
+    conflicts("@:5.3 %nvhpc")
+    conflicts("@5.4 +openmp %nvhpc")
+    patch("540_nvhpc.patch", when="@5.4 %nvhpc")
+
     depends_on("c", type="build")
     depends_on("fortran", type="build")
 

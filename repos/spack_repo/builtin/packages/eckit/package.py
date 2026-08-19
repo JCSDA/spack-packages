@@ -22,6 +22,7 @@ class Eckit(CMakePackage):
 
     license("Apache-2.0")
 
+    version("2.0.7", sha256="376aa865b317d9533c1c88e1a7d15ca248420cc8a048570f3fe216e123991b51")
     version("2.0.2", sha256="46b9c1f90e0b565698c5c79c54676401d33738ec82995c025d5d5aabeb13ad2b")
     version("1.33.0", sha256="a15f89df0cdaa2d8a74843a1e72a7b3b304958a4fe119b51eec5efadbf113d4f")
     version("1.32.3", sha256="33e0fac2656cdd2f2d877dbfe7a4751ee657ab732c00dd90bd48a406298a100f")
@@ -92,9 +93,10 @@ class Eckit(CMakePackage):
 
     # Build issues with cmake 3.20, not sure about 3.21
     depends_on("cmake@3.12:3.19,3.22:", type="build")
+    depends_on("cmake@3.18:3.19,3.22:", when="@1.33:", type="build")
     depends_on("ecbuild@3.5:", when="@:1.20.99", type="build")
-    depends_on("ecbuild@3.7:", when="@1.21:", type="build")
-    depends_on("ecbuild@3.11:", when="@1.31:", type="build")
+    depends_on("ecbuild@3.7:", when="@1.21:1.30,1.32:", type="build")
+    depends_on("ecbuild@3.11:", when="@1.31:1.31.4", type="build")
 
     depends_on("mpi", when="+mpi")
     depends_on("llvm-openmp", when="+openmp %apple-clang", type=("build", "run"))
@@ -194,21 +196,6 @@ class Eckit(CMakePackage):
             # ENABLE_LAPACK is ignored if MKL backend is enabled
             # (the LAPACK backend is still built though):
             args.append(self.define("ENABLE_LAPACK", "linalg=lapack" in self.spec))
-
-        if self.spec.satisfies("linalg=lapack"):
-            lapack_vendors = {
-                "amdlibflame": "AOCL",
-                "atlas": "ATLAS",
-                "essl": "IBMESSL",
-                "flexiblas": "FlexiBLAS",
-                "fujitsu-ssl2": "Fujitsu_SSL2",
-                "netlib-lapack": "Generic",
-                "nvhpc": "NVHPC",
-                "openblas": "OpenBLAS",
-            }
-            if self.spec["lapack"].name in lapack_vendors.keys():
-                vendor = lapack_vendors[self.spec["lapack"].name]
-                args.append(self.define("BLA_VENDOR", vendor))
 
         if "+admin" in self.spec and "+termlib" in self.spec["ncurses"]:
             # Make sure that libeckit_cmd is linked to a library that resolves 'setupterm',
