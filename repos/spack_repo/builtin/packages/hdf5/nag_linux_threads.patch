@@ -1,0 +1,108 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -839,12 +839,13 @@
+ if (H5_HAVE_PARALLEL)
+   list (APPEND LINK_PUB_LIBS MPI::MPI_C)
+   if (MPI_C_LINK_FLAGS)
+-    set (CMAKE_EXE_LINKER_FLAGS "${MPI_C_LINK_FLAGS} ${CMAKE_EXE_LINKER_FLAGS}")
++    # Do not add the MPI wrapper's bare -pthread flag to NAG's
++    # initial Fortran compiler test. MPI::MPI_C supplies the C link data.
+   endif ()
+ endif ()
+ 
+ # Determine if a threading package is available on this system
+ set (THREADS_PREFER_PTHREAD_FLAG ON)
+ find_package (Threads)
+ if (Threads_FOUND)
+   set (H5_HAVE_THREADS 1)
+--- a/config/HDFUseFortran.cmake
++++ b/config/HDFUseFortran.cmake
+@@ -31,27 +31,29 @@
+ #-----------------------------------------------------------------------------
+ # Detects Fortran/C name mangling convention used between Fortran and C using FortranCInterface
+ #-----------------------------------------------------------------------------
+-include (FortranCInterface)
++if (NOT CMAKE_Fortran_COMPILER_ID MATCHES "NAG")
++  include (FortranCInterface)
+ 
+-#-----------------------------------------------------------------------------
+-# Verifies Fortran and C/C++ compiler interoperability
+-#-----------------------------------------------------------------------------
+-FortranCInterface_VERIFY()
++  #-----------------------------------------------------------------------------
++  # Verifies Fortran and C/C++ compiler interoperability
++  #-----------------------------------------------------------------------------
++  FortranCInterface_VERIFY()
+ 
+-# Sets macros for Fortran name mangling (H5_FC_FUNC, H5_FC_FUNC_)
+-FortranCInterface_HEADER (
+-    ${CMAKE_BINARY_DIR}/FCMangle.h
+-    MACRO_NAMESPACE "H5_FC_"
+-    SYMBOL_NAMESPACE "H5_FC_"
+-)
++  # Sets macros for Fortran name mangling (H5_FC_FUNC, H5_FC_FUNC_)
++  FortranCInterface_HEADER (
++      ${CMAKE_BINARY_DIR}/FCMangle.h
++      MACRO_NAMESPACE "H5_FC_"
++      SYMBOL_NAMESPACE "H5_FC_"
++  )
+ 
+-file (STRINGS ${CMAKE_BINARY_DIR}/FCMangle.h CONTENTS REGEX "H5_FC_GLOBAL\\(.*,.*\\) +(.*)")
+-string (REGEX MATCH "H5_FC_GLOBAL\\(.*,.*\\) +(.*)" RESULT  ${CONTENTS})
+-set (H5_FC_FUNC "H5_FC_FUNC(name,NAME) ${CMAKE_MATCH_1}" CACHE INTERNAL "Fortran name mangling macro for C identifiers without underscores")
++  file (STRINGS ${CMAKE_BINARY_DIR}/FCMangle.h CONTENTS REGEX "H5_FC_GLOBAL\\(.*,.*\\) +(.*)")
++  string (REGEX MATCH "H5_FC_GLOBAL\\(.*,.*\\) +(.*)" RESULT  ${CONTENTS})
++  set (H5_FC_FUNC "H5_FC_FUNC(name,NAME) ${CMAKE_MATCH_1}" CACHE INTERNAL "Fortran name mangling macro for C identifiers without underscores")
+ 
+-file (STRINGS ${CMAKE_BINARY_DIR}/FCMangle.h CONTENTS REGEX "H5_FC_GLOBAL_\\(.*,.*\\) +(.*)")
+-string (REGEX MATCH "H5_FC_GLOBAL_\\(.*,.*\\) +(.*)" RESULT  ${CONTENTS})
+-set (H5_FC_FUNC_ "H5_FC_FUNC_(name,NAME) ${CMAKE_MATCH_1}" CACHE INTERNAL "Fortran name mangling macro for C identifiers with underscores")
++  file (STRINGS ${CMAKE_BINARY_DIR}/FCMangle.h CONTENTS REGEX "H5_FC_GLOBAL_\\(.*,.*\\) +(.*)")
++  string (REGEX MATCH "H5_FC_GLOBAL_\\(.*,.*\\) +(.*)" RESULT  ${CONTENTS})
++  set (H5_FC_FUNC_ "H5_FC_FUNC_(name,NAME) ${CMAKE_MATCH_1}" CACHE INTERNAL "Fortran name mangling macro for C identifiers with underscores")
++endif ()
+ 
+ # READ_SOURCE macro to extract Fortran code blocks for tests
+ # Read source line beginning at the line matching Input:"START" and ending at the line matching Input:"END"
+--- a/fortran/CMakeLists.txt
++++ b/fortran/CMakeLists.txt
+@@ -15,7 +15,25 @@
++  if (CMAKE_Fortran_COMPILER_ID STREQUAL "NAG")
++    # HDF5 copies Threads::Threads into LINK_Fortran_LIBS.
++    set_property (TARGET Threads::Threads PROPERTY INTERFACE_COMPILE_OPTIONS "")
++    set_property (TARGET Threads::Threads PROPERTY INTERFACE_LINK_LIBRARIES "-lpthread")
++  endif ()
+   find_package(MPI REQUIRED COMPONENTS Fortran)
++  if (CMAKE_Fortran_COMPILER_ID STREQUAL "NAG")
++    # MPI::MPI_C is carried by HDF5's C library and otherwise propagates its
++    # bare -pthread compile option to HDF5 Fortran targets.  NAG accepts the
++    # pthread library, not the compiler-driver option.
++    string (REPLACE "-pthread" "-lpthread" H5_MPI_C_LINK_FLAGS "${MPI_C_LINK_FLAGS}")
++    set_property (TARGET MPI::MPI_C PROPERTY INTERFACE_COMPILE_OPTIONS "")
++    set_property (TARGET MPI::MPI_C PROPERTY INTERFACE_LINK_OPTIONS "${H5_MPI_C_LINK_FLAGS}")
++  endif ()
+   set (LINK_Fortran_LIBS ${LINK_Fortran_LIBS} ${MPI_Fortran_LIBRARIES})
+   if (MPI_Fortran_LINK_FLAGS)
+-    set (CMAKE_Fortran_EXE_LINKER_FLAGS "${MPI_Fortran_LINK_FLAGS} ${CMAKE_EXE_LINKER_FLAGS}")
++    if (CMAKE_Fortran_COMPILER_ID MATCHES "NAG")
++      string (REPLACE "-pthread" "-Wl,-pthread" H5_MPI_FORTRAN_LINK_FLAGS "${MPI_Fortran_LINK_FLAGS}")
++      set (CMAKE_Fortran_EXE_LINKER_FLAGS "${H5_MPI_FORTRAN_LINK_FLAGS} ${CMAKE_EXE_LINKER_FLAGS}")
++    else ()
++      set (CMAKE_Fortran_EXE_LINKER_FLAGS "${MPI_Fortran_LINK_FLAGS} ${CMAKE_EXE_LINKER_FLAGS}")
++    endif ()
+   endif ()
+   # Check if MPI-3 Fortran 2008 module mpi_f08 is supported
+   if (MPI_Fortran_HAVE_F08_MODULE)
+@@ -39,7 +57,12 @@
+ 
+ if (H5_HAVE_PARALLEL)
+   if (MPI_Fortran_LINK_FLAGS)
+-    set (CMAKE_EXE_LINKER_FLAGS "${MPI_Fortran_LINK_FLAGS} ${CMAKE_EXE_LINKER_FLAGS}")
++    if (CMAKE_Fortran_COMPILER_ID MATCHES "NAG")
++      string (REPLACE "-pthread" "-Wl,-pthread" H5_MPI_FORTRAN_LINK_FLAGS "${MPI_Fortran_LINK_FLAGS}")
++      set (CMAKE_EXE_LINKER_FLAGS "${H5_MPI_FORTRAN_LINK_FLAGS} ${CMAKE_EXE_LINKER_FLAGS}")
++    else ()
++      set (CMAKE_EXE_LINKER_FLAGS "${MPI_Fortran_LINK_FLAGS} ${CMAKE_EXE_LINKER_FLAGS}")
++    endif ()
+   endif ()
+ endif ()

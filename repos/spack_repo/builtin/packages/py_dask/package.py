@@ -19,6 +19,7 @@ class PyDask(PythonPackage):
 
     version("2026.3.0", sha256="f7d96c8274e8a900d217c1ff6ea8d1bbf0b4c2c21e74a409644498d925eb8f85")
     version("2025.7.0", sha256="c3a0d4e78882e85ea81dbc71e6459713e45676e2d17e776c2f3f19848039e4cf")
+    version("2025.5.0", sha256="3ec9175e53effe1c2b0086668352e0d5261c5ef6f71a410264eda83659d686ef")
     version("2025.3.0", sha256="322834f44ebc24abeb564c56ccb817c97d6e7af6be71ad0ad96b78b51f2e0e85")
     version("2024.12.1", sha256="bac809af21c2dd7eb06827bccbfc612504f3ee6435580e548af912828f823195")
     version("2024.7.1", sha256="dbaef2d50efee841a9d981a218cfeb50392fc9a95e0403b6d680450e4f50d531")
@@ -26,9 +27,6 @@ class PyDask(PythonPackage):
     version("2022.10.2", sha256="42cb43f601709575fa46ce09e74bea83fdd464187024f56954e09d9b428ceaab")
     version("2021.6.2", sha256="8588fcd1a42224b7cfcd2ebc8ad616734abb6b1a4517efd52d89c7dd66eb91f8")
     version("2021.4.1", sha256="195e4eeb154222ea7a1c368119b5f321ee4ec9d78531471fe0145a527f744aa8")
-    version("2021.3.1", sha256="1fa7e1809e7c50c5505297b03e6ee161e0695df73b4c4051b5b1c8fd670bf5d7")
-    version("2021.3.0", sha256="566054b493d63c15732f2a640382b21e861571d61639f59341bc7695a9be138e")
-    version("2021.2.0", sha256="e7054b8d685205e95c789900ae87d6174550180cbe38a3cb1142e10c73004c22")
     version("2020.12.0", sha256="43e745afd4b464e6c0113131e430a16dce6ac42460b06e24d799093d098f7ab0")
 
     variant("array", default=True, description="Install requirements for dask.array")
@@ -58,8 +56,6 @@ class PyDask(PythonPackage):
         depends_on("py-versioneer@0.29+toml", when="@2023.10.1:2025.11.0")
         depends_on("py-versioneer@0.28+toml", when="@2023.4.1:2023.10.0")
 
-        depends_on("py-packaging@20:", when="@2022.10.2:")
-
     with default_args(type=("build", "run")):
         # python@3.14 breaks py-dask@:2025.7.0
         depends_on("python@:3.13", when="@:2025.12")
@@ -85,8 +81,8 @@ class PyDask(PythonPackage):
         depends_on("py-partd@1.2.0:", when="@2023.4.0:")
         depends_on("py-partd@0.3.10:", when="@2021.3.1:")
 
-        depends_on("py-pyyaml")
         depends_on("py-pyyaml@5.3.1:", when="@2022.10.2:")
+        depends_on("py-pyyaml")
 
         depends_on("py-toolz@0.12.0:", when="@2026.3.0:")
         depends_on("py-toolz@0.10.0:", when="@2023.4.1:")

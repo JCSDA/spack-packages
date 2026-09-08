@@ -688,6 +688,13 @@ class CMakeBuilder(cmake.CMakeBuilder):
             self.define("CMAKE_POLICY_DEFAULT_CMP0042", "NEW"),
         ]
 
+        # On macOS the cmake build sets the dylib install name to the build-stage
+        # path instead of the install prefix, causing downstream packages (e.g.
+        # py-numpy) to embed a broken rpath.  Setting CMAKE_INSTALL_NAME_DIR fixes
+        # the install name to the real installed lib directory.
+        if self.spec.satisfies("platform=darwin"):
+            cmake_defs += [self.define("CMAKE_INSTALL_NAME_DIR", self.spec.prefix.lib)]
+
         if self.spec.satisfies("+dynamic_dispatch"):
             cmake_defs += [self.define("DYNAMIC_ARCH", "ON")]
         if self.spec.satisfies("platform=windows"):

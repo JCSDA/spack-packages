@@ -39,7 +39,7 @@ class Meson(PythonPackage):
         version("1.8.2", sha256="6b878fb0f6f0318cbd54e13539f89a1a8305791668e8e93ffd59d82722888dac")
         version("1.7.0", sha256="a6ca46e2a11a0278bb6492ecd4e0520ff441b164ebfdef1e012b11beb848d26e")
 
-    depends_on("py-setuptools@42:", type=("build", "run"))
+    depends_on("py-setuptools@42:", type="build")
     depends_on("ninja@1.8.2:", type="run")
 
     # By default, Meson strips the rpath on installation. This patch disables
@@ -49,6 +49,15 @@ class Meson(PythonPackage):
 
     # Python 3.12 detection support
     patch("python-3.12-support.patch", when="@1.1:1.2.2")
+
+    # search_version() could match a version-shaped substring embedded in
+    # unrelated text (e.g. a compiler's own install path, such as
+    # ".../gcc-11.4.1/...") in preference to the compiler's real version,
+    # silently corrupting capability detection (e.g. c_std/cpp_std support)
+    # for any compiler invoked from such a path. Planned to be fixed in version 1.12.1;
+    # backported here for older releases. Verified to apply cleanly back to
+    # 1.0.2.
+    patch("search_version_no_trailing_digits.patch", when="@1.0.2:1.12.0")
 
     executables = ["^meson$"]
 

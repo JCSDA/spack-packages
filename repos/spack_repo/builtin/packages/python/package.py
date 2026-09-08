@@ -723,14 +723,14 @@ class Python(Package):
         if cflags:
             config_args.append("CFLAGS={0}".format(" ".join(cflags)))
 
-        if spec["gettext"].satisfies("~shared"):
+        if "gettext" in spec and spec["gettext"].satisfies("~shared"):
             config_args.append(
                 "LIBS=-L{0} -L{1} -lintl -liconv".format(
                     spec["gettext"].prefix.lib, spec["iconv"].prefix.lib
                 )
             )
 
-        if self.version >= Version("3.12.0") and sys.platform == "darwin":
+        if self.version >= Version("3.12.0") and sys.platform == "darwin" and "ncurses" in spec:
             config_args.append("CURSES_LIBS={0}".format(spec["ncurses"].libs.link_flags))
 
         return config_args

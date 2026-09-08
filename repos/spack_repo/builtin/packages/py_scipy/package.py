@@ -181,9 +181,9 @@ class PyScipy(PythonPackage):
     #         |          ^~~~~~~~~~~
     #   compilation terminated.
     # See also: https://github.com/macports/macports-ports/commit/d45376ea224ffa9184c6a0ecbcbdf024ee447f12
-    patch("use_stdc_no_threads.patch", when="platform=darwin %gcc")
+    patch("use_stdc_no_threads.patch", when="@:1.8 platform=darwin %gcc")
     # Additional changes needed for scipy-1.8.0
-    patch("use_stdc_no_threads_scipy180_addon.patch", when="@1.8: platform=darwin %gcc")
+    patch("use_stdc_no_threads_scipy180_addon.patch", when="@1.8 platform=darwin %gcc")
     # *DH
 
     # https://github.com/scipy/scipy/issues/21884
@@ -192,6 +192,10 @@ class PyScipy(PythonPackage):
         sha256="37209324c6c2d9bf9284bf4726ec3ea7ecafabf736c7a72cf6789af97aebd30b",
         when="@1.8.0:1.14.0",
     )
+
+    # NAG forwards GNU linker flags (e.g. --version-script) to GCC without
+    # the required -Wl, prefix, causing the link step to fail.
+    patch("nag_disable_version_script.patch", when="@1.17:1 %nag")
 
     @property
     def archive_files(self):

@@ -115,6 +115,12 @@ class Harfbuzz(MesonPackage, AutotoolsPackage, CMakePackage):
         with when(f"platform={plat}"):
             variant("gobject", default=False, description="Enable GObject introspection")
             variant(
+                "introspection",
+                default=True,
+                when="build_system=meson +gobject",
+                description="Generate GObject introspection metadata",
+            )
+            variant(
                 "utils",
                 default=False,
                 when="build_system=cmake",
@@ -168,7 +174,7 @@ class MesonBuilder(meson.MesonBuilder, SetupEnvironment):
     def meson_args(self):
         graphite2 = "enabled" if self.pkg.spec.satisfies("+graphite2") else "disabled"
         coretext = "enabled" if self.pkg.spec.satisfies("+coretext") else "disabled"
-        introspection = "enabled" if self.pkg.spec.satisfies("+gobject") else "disabled"
+        introspection = "enabled" if self.pkg.spec.satisfies("+introspection") else "disabled"
         config_args = [
             # disable building of gtk-doc files following #9885 and #9771
             "-Ddocs=disabled",
