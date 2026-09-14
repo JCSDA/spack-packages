@@ -34,8 +34,7 @@ class Esmf(MakefilePackage, PythonExtension):
     high-performance, parallel regridding of fields between structured grids,
     unstructured meshes, and observational data streams directly within Python
     workflows. This bridges native ESMF capabilities with the broader Python
-    data science ecosystem.
-    ESMPy is included with the ESMF package."""
+    data science ecosystem. ESMPy is included with the ESMF package."""
 
     homepage = "https://earthsystemmodeling.org/"
     url = "https://github.com/esmf-org/esmf/archive/v8.4.1.tar.gz"
