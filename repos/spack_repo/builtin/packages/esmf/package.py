@@ -249,15 +249,21 @@ class MakefileBuilder(makefile.MakefileBuilder):
         if spec["fortran"].name == "gcc" and spec["c"].name == "gcc":
             gfortran_major_version = int(spec["fortran"].version[0])
             env.set("ESMF_COMPILER", "gfortran")
-        elif spec["fortran"].name in ["intel-oneapi-compilers", "intel-oneapi-compilers-classic"]:
-            env.set("ESMF_COMPILER", "intel")
         elif spec["fortran"].name == "gcc" and spec["c"].name in ["clang", "apple-clang"]:
             gfortran_major_version = int(spec["fortran"].version[0])
             env.set("ESMF_COMPILER", "gfortranclang")
+        elif spec["fortran"].name in ["intel-oneapi-compilers", "intel-oneapi-compilers-classic"] and spec["c"].name in ["intel-oneapi-compilers", "intel-oneapi-compilers-classic"]:
+            env.set("ESMF_COMPILER", "intel")
+        elif spec["fortran"].name in ["intel-oneapi-compilers", "intel-oneapi-compilers-classic"] and spec["c"].name == "gcc":
+            env.set("ESMF_COMPILER", "intelgcc")
+        elif spec["fortran"].name in ["intel-oneapi-compilers", "intel-oneapi-compilers-classic"] and spec["c"].name in ["clang", "apple-clang"]:
+            env.set("ESMF_COMPILER", "intelclang")
         elif spec["fortran"].name == "llvm":
             env.set("ESMF_COMPILER", "llvm")
-        elif spec["fortran"].name == "nag":
+        elif spec["fortran"].name == "nag" and spec["c"].name == "gcc":
             env.set("ESMF_COMPILER", "nag")
+        elif spec["fortran"].name == "nag" and spec["c"].name in ["clang", "apple-clang"]:
+            env.set("ESMF_COMPILER", "nagclang")
         elif spec["fortran"].name == "nvhpc":
             env.set("ESMF_COMPILER", "nvhpc")
         elif spec["fortran"].name == "cce":
