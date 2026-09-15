@@ -46,7 +46,7 @@ class Esmf(MakefilePackage, PythonExtension):
 
     # Develop is a special name for spack and is always considered the newest version
     version("develop", branch="develop")
-    #TODO: remove 9.0.0 beta tags once officially released
+    # TODO: remove 9.0.0 beta tags once officially released
     version("9.0.0b18", commit="c12f7f42f7c6e95ede1a19c0b596f36d714620c3")
     version("9.0.0b11", commit="02c51688281c120543404a0f46a380c9722e9929")
     version("9.0.0b10", commit="bae8e921171284d94ea271186b928ba718cb6e6f")
@@ -251,11 +251,20 @@ class MakefileBuilder(makefile.MakefileBuilder):
         elif spec["fortran"].name == "gcc" and spec["c"].name in ["clang", "apple-clang"]:
             gfortran_major_version = int(spec["fortran"].version[0])
             env.set("ESMF_COMPILER", "gfortranclang")
-        elif spec["fortran"].name in ["intel-oneapi-compilers", "intel-oneapi-compilers-classic"] and spec["c"].name in ["intel-oneapi-compilers", "intel-oneapi-compilers-classic"]:
+        elif spec["fortran"].name in [
+            "intel-oneapi-compilers",
+            "intel-oneapi-compilers-classic",
+        ] and spec["c"].name in ["intel-oneapi-compilers", "intel-oneapi-compilers-classic"]:
             env.set("ESMF_COMPILER", "intel")
-        elif spec["fortran"].name in ["intel-oneapi-compilers", "intel-oneapi-compilers-classic"] and spec["c"].name == "gcc":
+        elif (
+            spec["fortran"].name in ["intel-oneapi-compilers", "intel-oneapi-compilers-classic"]
+            and spec["c"].name == "gcc"
+        ):
             env.set("ESMF_COMPILER", "intelgcc")
-        elif spec["fortran"].name in ["intel-oneapi-compilers", "intel-oneapi-compilers-classic"] and spec["c"].name in ["clang", "apple-clang"]:
+        elif spec["fortran"].name in [
+            "intel-oneapi-compilers",
+            "intel-oneapi-compilers-classic",
+        ] and spec["c"].name in ["clang", "apple-clang"]:
             env.set("ESMF_COMPILER", "intelclang")
         elif spec["fortran"].name == "llvm":
             env.set("ESMF_COMPILER", "llvm")
