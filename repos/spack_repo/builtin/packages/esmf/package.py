@@ -156,7 +156,7 @@ class Esmf(MakefilePackage, PythonExtension):
     patch("esmf_cpp_info.patch")
 
     # Patch for yaml-cpp (https://github.com/esmf-org/esmf/pull/404)
-    # Needed for GCC 15, patch only works from 8.5 on, will be fixed in 8.9
+    # Needed for GCC 15, patch only works from 8.5 on, fixed in 8.9
     patch("yaml_cpp.patch", when="@8.5:8.8 %gcc@15:")
 
     @when("+python")
