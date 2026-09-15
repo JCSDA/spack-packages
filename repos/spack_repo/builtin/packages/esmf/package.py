@@ -370,6 +370,7 @@ class MakefileBuilder(makefile.MakefileBuilder):
                 openmp = spec["llvm-openmp"]
                 env.append_flags("ESMF_CXXCOMPILEOPTS", openmp.headers.include_flags)
                 env.append_flags("ESMF_CXXLINKOPTS", openmp.libs.ld_flags)
+                env.append_flags("ESMF_F90LINKOPTS", openmp.libs.ld_flags)
                 env.append_flags("ESMF_SL_LIBOPTS", openmp.libs.ld_flags)
         else:
             env.set("ESMF_OPENMP", "OFF")
