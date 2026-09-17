@@ -372,6 +372,9 @@ class MakefileBuilder(makefile.MakefileBuilder):
                 env.append_flags("ESMF_CXXLINKOPTS", openmp.libs.ld_flags)
                 env.append_flags("ESMF_F90LINKOPTS", openmp.libs.ld_flags)
                 env.append_flags("ESMF_SL_LIBOPTS", openmp.libs.ld_flags)
+                env.append_flags("ESMF_CXXLINKOPTS", openmp.package.rpath_args)
+                env.append_flags("ESMF_F90LINKOPTS", openmp.package.rpath_args)
+                env.append_flags("ESMF_SL_LIBOPTS", openmp.package.rpath_args)
         else:
             env.set("ESMF_OPENMP", "OFF")
 
