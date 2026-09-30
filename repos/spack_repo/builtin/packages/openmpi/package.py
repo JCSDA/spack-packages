@@ -999,9 +999,23 @@ with '-Wl,-commons,use_dylibs' and without
         return find_libraries(libraries, root=self.prefix, shared=True, recursive=True)
 
     def setup_build_environment(self, env: EnvironmentModifications) -> None:
-        # We need to unset MACOSX_DEPLOYMENT_TARGET on macOS if building with NAG Fortran
-        if self.spec.satisfies("platform=darwin") and self.spec.satisfies("%fortran=nag"):
+        # Match OpenMPI's Darwin configuration when using Flang or NAG.
+        # It avoids a shared-library path that these compilers do not support
+        # for the older Fortran bindings.
+        if self.spec.satisfies("platform=darwin") and (
+            self.spec.satisfies("%fortran=nag") or self.spec.satisfies("%fortran=clang")
+        ):
             env.unset("MACOSX_DEPLOYMENT_TARGET")
+
+    @run_after("configure")
+    def fix_darwin_flang_libtool(self):
+        if not self.spec.satisfies("platform=darwin %fortran=clang"):
+            return
+
+        # Libtool recognizes a direct `flang` command but not Spack's absolute
+        # compiler-wrapper path.  Consequently it passes Darwin linker flags
+        # directly to Flang instead of through -Wl,.
+        filter_file(r"flang\*", r"*/flang|flang*", "libtool")
 
     def setup_run_environment(self, env: EnvironmentModifications) -> None:
         # Because MPI is both a runtime and a compiler, we have to setup the
