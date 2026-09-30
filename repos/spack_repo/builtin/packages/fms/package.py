@@ -101,6 +101,10 @@ class Fms(CMakePackage):
         when="@2023.03",
     )
 
+    # Add LLVM Flang precision flags. Based on the GEOS Baselibs patch:
+    # https://github.com/GEOS-ESM/ESMA-Baselibs/blob/main/patches/FMS/llvm.patch
+    patch("llvmflang.patch", when="@2026.01.01 %fortran=clang")
+
     variant(
         "portable_kinds",
         description="Use iso_c_binding variable kinds",
