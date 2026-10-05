@@ -20,6 +20,9 @@ class PyPyresample(PythonPackage):
     version("1.34.1", sha256="6e0e7ccf090bcabf4bfc8818d7ff633741fddf9784fe90b4add86f925b5b72f1")
     version("1.34.0", sha256="a0cd05327f8015862809da8704e93943890f02194d11d97ede29576f6a6730d4")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
     depends_on("py-setuptools", type="build")
     depends_on("py-setuptools-scm +toml", type="build")
 

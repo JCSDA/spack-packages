@@ -18,6 +18,9 @@ class PyPykdtree(PythonPackage):
     # Add the relevant versions and their SHA-256 checksums from PyPI
     version("1.4.3", sha256="d9187930ffb8c822c52595b64948b47346694ee2a49e2702420b58f743d786f5")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
     # Build system backends
     depends_on("python@3.9:", type=("build", "run"))
     depends_on("py-setuptools", type="build")
@@ -28,6 +31,11 @@ class PyPykdtree(PythonPackage):
     
     # OpenMP is required for multi-threaded queries
     depends_on("llvm-openmp", when="%apple-clang", type=("build", "link"))
+
+    def setup_build_environment(self, env):
+    # turn off OMP when building with oneapi (not supported)
+    if self.spec.satisfies("%oneapi"):
+        env.set("USE_OMP", "0")
 
     def install_options(self, spec, prefix):
         # Optional: Hand over specific compilation variables if building on macOS 
