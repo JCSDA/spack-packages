@@ -137,6 +137,18 @@ class Pfunit(CMakePackage):
         for file in glob.glob("*/CMakeLists.txt"):
             filter_file(r".*/mod($|[^\w].*)", "", file)
 
+    @run_before("cmake")
+    def fix_darwin_llvmflang_ranlib(self):
+        if self.spec.satisfies("platform=darwin %fortran=clang"):
+            # pFUnit's macOS override passes a GNU ranlib-only option that
+            # LLVM ranlib rejects. CMake's default archive rule is valid.
+            filter_file(
+                "if (APPLE)",
+                'if (APPLE AND NOT CMAKE_Fortran_COMPILER_ID STREQUAL "LLVMFlang")',
+                "CMakeLists.txt",
+                string=True,
+            )
+
     def url_for_version(self, version):
         url_base = "https://github.com/Goddard-Fortran-Ecosystem/pFUnit"
         # Version 4.2.3+ has a v...
