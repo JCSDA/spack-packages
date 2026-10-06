@@ -22,8 +22,6 @@ class Crtm(CMakePackage):
 
     maintainers(
         "BenjaminTJohnson",
-        "t-brown",
-        "edwardhartnett",
         "AlexanderRichert-NOAA",
         "Hang-Lei-NOAA",
         "climbfuji",
@@ -31,6 +29,7 @@ class Crtm(CMakePackage):
 
     license("CC0-1.0")
 
+    version("3.1.5", sha256="81663d2a70de5b636c18c927581bbc410a0fbb15f4295472560e81190ba2af81")
     version("3.1.3", sha256="4f72bb281d266063c902caa6613e508d6d80367c10ee4881dd67e08c146c9c33")
     version("3.1.2", sha256="a96598e5611c263fa80d6d6375a12d70d74389b261a8070515a6698e41563281")
     version(
@@ -85,8 +84,8 @@ class Crtm(CMakePackage):
     depends_on("crtm-fix@2.4.0.1_emc", when="@2.4.0.1 +fix")
     depends_on("crtm-fix@3.1.1", when="@3.1.1 +fix")
     depends_on("crtm-fix@3.1.2", when="@3.1.2 +fix")
-    # Note. crtm@3.1.3 uses crtm-fix@3.1.2
-    depends_on("crtm-fix@3.1.2", when="@3.1.3 +fix")
+    # Note. crtm@3.1.3-3.1.5 use crtm-fix@3.1.2
+    depends_on("crtm-fix@3.1.2", when="@3.1.3:3.1.5 +fix")
 
     depends_on("ecbuild", type=("build"), when="@v2.4")
     depends_on("ecbuild", type=("build"), when="@v3")
@@ -138,8 +137,6 @@ class Crtm(CMakePackage):
             os.symlink(srcpath, join_path(self.prefix, "cmake", os.path.basename(srcpath)))
 
     def check(self):
-        # Until issues with fixed data organization are resolved, just run the basic test
-        # see https://github.com/JCSDA/spack-stack/issues/1910
         ctest = Executable(self.spec["cmake"].prefix.bin.ctest)
         with working_dir(self.build_directory):
             ctest("--timeout", "120")
