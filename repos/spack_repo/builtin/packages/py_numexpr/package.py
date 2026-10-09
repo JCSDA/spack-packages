@@ -15,6 +15,7 @@ class PyNumexpr(PythonPackage):
 
     license("MIT", checked_by="lgarrison")
 
+    version("2.14.2", sha256="e7144e83ea9e581f2273e0304f15836736c4e470e2bd2e378ce617662a1ca278")
     version("2.14.1", sha256="4be00b1086c7b7a5c32e31558122b7b80243fe098579b170967da83f3152b48b")
     version("2.10.2", sha256="7e61a8aa4dacb15787b31c31bd7edf90c026d5e6dbe727844c238726e8464592")
     version("2.9.0", sha256="4df4163fcab20030137e8f2aa23e88e1e42e6fe702387cfd95d7675e1d84645e")
@@ -53,3 +54,141 @@ class PyNumexpr(PythonPackage):
 
         # Historical dependencies
         depends_on("py-packaging", when="@2.8.3")
+
+    @when("%oneapi")
+    def patch(self):
+        self._patch_intel()
+
+    @when("%intel")
+    def patch(self):
+        self._patch_intel()
+
+    def _patch_intel(self):
+        # Intel oneAPI math.h clashes with numexpr in two ways:
+        #
+        # 1. numexpr_config.hpp redefines signbitf/isfinited/isnand/isinfd as
+        #    inline bool, but Intel math.h already declared them returning int.
+        #    C++ rejects overloading on return type alone.
+        #
+        # 2. functions.hpp feeds raw signbit (int) into FuncBDPtr (bool(*)(double))
+        #    and signbitf (int on Intel) into FuncBFPtr (bool(*)(float)).
+        #    Intel strict mode rejects the implicit int->bool pointer conversion.
+        #
+        # Fix: guard the conflicting definitions behind a non-Intel preprocessor
+        # check, add ne_* bool wrappers that work on all compilers, and update
+        # functions.hpp to use the ne_* names in the function-pointer tables.
+        #
+        # Use raw bytes I/O to handle CRLF line endings in the tarball.
+        # All bytes.replace() calls are no-ops on versions that lack the target
+        # string, so this is safe across the full version range.
+
+        # --- patch numexpr/numexpr_config.hpp ---
+        config = "numexpr/numexpr_config.hpp"
+        with open(config, "rb") as f:
+            content = f.read()
+        content = content.replace(b"\r\n", b"\n")
+
+        # signbitf: guard the existing definition (Intel math.h declares it int).
+        content = content.replace(
+            b"inline bool signbitf(float x) { return signbit((double)x); }",
+            b"#if !defined(__INTEL_COMPILER) && !defined(__INTEL_LLVM_COMPILER)\n"
+            b"inline bool signbitf(float x) { return signbit((double)x); }\n"
+            b"#endif",
+        )
+
+        # isfinited/isnand/isinfd: guard the existing definitions.
+        for old, new in [
+            (
+                b"inline bool isfinited(double x) { return !!std::isfinite(x); }",
+                b"#if !defined(__INTEL_COMPILER) && !defined(__INTEL_LLVM_COMPILER)\n"
+                b"inline bool isfinited(double x) { return !!std::isfinite(x); }\n"
+                b"#endif",
+            ),
+            (
+                b"inline bool isnand(double x)    { return !!std::isnan(x); }",
+                b"#if !defined(__INTEL_COMPILER) && !defined(__INTEL_LLVM_COMPILER)\n"
+                b"inline bool isnand(double x)    { return !!std::isnan(x); }\n"
+                b"#endif",
+            ),
+            (
+                b"inline bool isinfd(double x)    { return !!std::isinf(x); }",
+                b"#if !defined(__INTEL_COMPILER) && !defined(__INTEL_LLVM_COMPILER)\n"
+                b"inline bool isinfd(double x)    { return !!std::isinf(x); }\n"
+                b"#endif",
+            ),
+        ]:
+            content = content.replace(old, new)
+
+        # Add ne_* bool wrappers for the function-pointer tables.  These names
+        # do not conflict with anything in Intel math.h.  Functions.hpp is
+        # patched below to reference them unconditionally so both Intel and
+        # non-Intel builds resolve correctly.
+        # fmaxd/fmind use isnand which is guarded away under Intel; patch them
+        # to use ne_isnand (defined below) directly.
+        content = content.replace(
+            b"inline double fmaxd(double x, double y)"
+            b"    { return (isnand(x) | isnand(y))? NAN : fmax(x, y); }",
+            b"inline double fmaxd(double x, double y)"
+            b"    { return (ne_isnand(x) | ne_isnand(y))? NAN : fmax(x, y); }",
+        )
+        content = content.replace(
+            b"inline double fmind(double x, double y)"
+            b"    { return (isnand(x) | isnand(y))? NAN : fmin(x, y); }",
+            b"inline double fmind(double x, double y)"
+            b"    { return (ne_isnand(x) | ne_isnand(y))? NAN : fmin(x, y); }",
+        )
+
+        # ne_* wrappers must appear before fmaxd/fmind but we inject them before
+        # the closing #endif which is after the #else block.  Instead, inject them
+        # right before the fmaxd definition inside the #else block.
+        ne_wrappers = (
+            b"// ne_* wrappers: bool-returning versions safe under all compilers.\n"
+            b"// Intel math.h declares signbitf/isfinited/isnand/isinfd returning int;\n"
+            b"// these wrappers avoid the return-type overload conflict.\n"
+            b"inline bool ne_signbitf(float x)   { return !!signbit((double)x); }\n"
+            b"inline bool ne_signbitd(double x)  { return !!signbit(x); }\n"
+            b"inline bool ne_isfinited(double x) { return !!std::isfinite(x); }\n"
+            b"inline bool ne_isnand(double x)    { return !!std::isnan(x); }\n"
+            b"inline bool ne_isinfd(double x)    { return !!std::isinf(x); }\n"
+        )
+        # Inject before the fmaxd/fmind block (the "// To handle overloading" comment)
+        content = content.replace(
+            b"// To handle overloading of fmax/fmin in cmath and match NumPy behaviour for NaNs\n",
+            ne_wrappers + b"// To handle overloading of fmax/fmin in cmath and match NumPy behaviour for NaNs\n",
+        )
+
+        with open(config, "wb") as f:
+            f.write(content)
+
+        # --- patch numexpr/functions.hpp ---
+        # Replace the four entries that put int-returning functions into bool(*)
+        # typed tables with the ne_* bool wrappers defined above.
+        funcs = "numexpr/functions.hpp"
+        with open(funcs, "rb") as f:
+            fcontent = f.read()
+        fcontent = fcontent.replace(b"\r\n", b"\n")
+        for old, new in [
+            (
+                b'FUNC_BD(FUNC_ISNAN_BD,   "isnan_bd",    isnand, vdIsnan)',
+                b'FUNC_BD(FUNC_ISNAN_BD,   "isnan_bd",    ne_isnand, vdIsnan)',
+            ),
+            (
+                b'FUNC_BD(FUNC_ISFINITE_BD, "isfinite_bd", isfinited, vdIsfinite)',
+                b'FUNC_BD(FUNC_ISFINITE_BD, "isfinite_bd", ne_isfinited, vdIsfinite)',
+            ),
+            (
+                b'FUNC_BD(FUNC_ISINF_BD, "isinf_bd", isinfd, vdIsinf)',
+                b'FUNC_BD(FUNC_ISINF_BD, "isinf_bd", ne_isinfd, vdIsinf)',
+            ),
+            (
+                b'FUNC_BD(FUNC_SIGNBIT_BD, "signbit_bd",  signbit, vdSignBit)',
+                b'FUNC_BD(FUNC_SIGNBIT_BD, "signbit_bd",  ne_signbitd, vdSignBit)',
+            ),
+            (
+                b'FUNC_BF(FUNC_SIGNBIT_BF, "signbit_bf", signbitf, signbitf2, vsSignBit)',
+                b'FUNC_BF(FUNC_SIGNBIT_BF, "signbit_bf", ne_signbitf, signbitf2, vsSignBit)',
+            ),
+        ]:
+            fcontent = fcontent.replace(old, new)
+        with open(funcs, "wb") as f:
+            f.write(fcontent)
