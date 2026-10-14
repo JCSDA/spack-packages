@@ -31,7 +31,6 @@ class PyPyresample(PythonPackage):
     depends_on("py-configobj", type=("build", "run"))
     depends_on("py-cython", type=("build", "run"))
     depends_on("py-donfig", type=("build", "run"))
-    depends_on("py-numexpr", type=("build", "run"))
     depends_on("py-numpy", type=("build", "run"))
     depends_on("py-platformdirs", type=("build", "run"))
     depends_on("py-pykdtree", type=("build", "run"))
