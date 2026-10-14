@@ -673,7 +673,7 @@ class Hdf5(CMakePackage):
                 )
             )
 
-        if spec.satisfies("@2.0.0: platform=darwin +mpi +fortran") and (
+        if spec.satisfies("@2.0.0: +mpi +fortran") and (
             spec.satisfies("%fortran=clang") or spec.satisfies("%fortran=nag")
         ):
             # HDF5's nested Fortran project loses the OpenMPI module directory
@@ -683,7 +683,8 @@ class Hdf5(CMakePackage):
             args.append(
                 self.define(
                     "MPI_Fortran_INCLUDE_DIRS",
-                    f"{spec['mpi'].prefix.include};{spec['mpi'].prefix.lib}",
+                    f"{spec['mpi'].prefix.include};" + \
+                    f"{';'.join(spec['mpi'].libs.directories)}",
                 )
             )
 
