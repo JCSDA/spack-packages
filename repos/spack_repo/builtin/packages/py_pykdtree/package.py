@@ -19,19 +19,25 @@ class PyPykdtree(PythonPackage):
     version("1.4.3", sha256="d9187930ffb8c822c52595b64948b47346694ee2a49e2702420b58f743d786f5")
 
     # Build system backends
+    depends_on("c", type="build")
     depends_on("python@3.9:", type=("build", "run"))
     depends_on("py-setuptools", type="build")
     depends_on("py-cython", type="build")
 
     # Runtime and Link Dependencies
     depends_on("py-numpy@1.16:", type=("build", "run"))
-    
+
     # OpenMP is required for multi-threaded queries
     depends_on("llvm-openmp", when="%apple-clang", type=("build", "link"))
 
+    def setup_build_environment(self, env):
+        # pykdtree setup.py hardcodes -lgomp on Linux; Intel oneAPI uses libiomp5
+        # instead, so disable OpenMP to avoid unresolved _kmpc* symbols
+        if self.spec.satisfies("%oneapi"):
+            env.set("USE_OMP", "0")
+
     def install_options(self, spec, prefix):
-        # Optional: Hand over specific compilation variables if building on macOS 
         options = []
-        if "%apple-clang" in spec:
+        if spec.satisfies("%apple-clang"):
             options.append("--build-option=--use-openmp")
         return options
