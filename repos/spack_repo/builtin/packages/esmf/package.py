@@ -48,6 +48,7 @@ class Esmf(MakefilePackage, PythonExtension):
     version("develop", branch="develop")
     # TODO: remove 9.0.0 beta tags once officially released
     version("9.0.0b18", commit="c12f7f42f7c6e95ede1a19c0b596f36d714620c3")
+    version("9.0.0b17", commit="45870de0c59f2c79f8444dd909b2f628bce81442")
     version("9.0.0b11", commit="02c51688281c120543404a0f46a380c9722e9929")
     version("9.0.0b10", commit="bae8e921171284d94ea271186b928ba718cb6e6f")
     # generate chksum with 'spack checksum esmf@x.y.z'
