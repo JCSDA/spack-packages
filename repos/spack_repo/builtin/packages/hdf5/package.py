@@ -723,16 +723,23 @@ class Hdf5(CMakePackage):
         # the Spack compiler wrapper. Filter all three parallel wrappers just in
         # case. It's a no-op if not needed. And, while we are there, also fix the
         # serial compiler wrappers that may or may not point to the MPI wrappers.
+        # And because the wrappers don't always exist, check for that first.
         if self.spec.satisfies("@2.1:+mpi"):
              with working_dir(self.prefix.bin):
-                filter_file(spack_cc, self.spec["mpi"].mpicc, "h5pcc")
-                filter_file(self.spec["mpi"].mpicc, self.compiler.cc, "h5cc")
+                if os.path.exists("h5pcc"):
+                    filter_file(spack_cc, self.spec["mpi"].mpicc, "h5pcc")
+                if os.path.exists("h5cc"):
+                    filter_file(self.spec["mpi"].mpicc, self.compiler.cc, "h5cc")
                 if self.spec.satisfies("+cxx"):
-                    filter_file(spack_cxx, self.spec["mpi"].mpicxx, "h5pc++")
-                    filter_file(self.spec["mpi"].mpicxx, self.compiler.cxx, "h5c++")
+                    if os.path.exists("h5pc++"):
+                        filter_file(spack_cxx, self.spec["mpi"].mpicxx, "h5pc++")
+                    if os.path.exists("h5c++"):
+                        filter_file(self.spec["mpi"].mpicxx, self.compiler.cxx, "h5c++")
                 if self.spec.satisfies("+fortran"):
-                    filter_file(spack_fc, self.spec["mpi"].mpifc, "h5pfc")
-                    filter_file(self.spec["mpi"].mpifc, self.compiler.fc, "h5fc")
+                    if os.path.exists("h5pfc"):
+                        filter_file(spack_fc, self.spec["mpi"].mpifc, "h5pfc")
+                    if os.path.exists("h5fc"):
+                        filter_file(self.spec["mpi"].mpifc, self.compiler.fc, "h5fc")
 
     @run_after("install")
     def fix_package_config(self):
