@@ -171,6 +171,9 @@ class MesonBuilder(meson.MesonBuilder):
             self.enable_or_disable("glib", variant="gobject"),
             "-Dspectre=disabled",
             "-Dsymbol-lookup=disabled",
+            # test/ and perf/ are never installed, and perf/meson.build probes for a
+            # system gtk+-2.0 regardless of -Dgtk2-utils, which fails to link when ~X
+            "-Dtests=disabled",
         ]
         return args
 
