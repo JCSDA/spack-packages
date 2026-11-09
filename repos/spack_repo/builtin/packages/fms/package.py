@@ -220,4 +220,10 @@ class Fms(CMakePackage):
             fflags = "-fp-model=precise -fp-speculation=safe"
             args.extend(["-DCMAKE_Fortran_FLAGS=%s" % fflags])
 
+        # gcc AVX-512 if-conversion runs FMAs in masked-off lanes, raising spurious FPEs
+        # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=128221
+        # https://github.com/NOAA-GFDL/FMS/issues/1937
+        if self.spec.satisfies("%fortran=gcc@12:"):
+            args.extend(["-DCMAKE_Fortran_FLAGS=-fno-tree-loop-if-convert"])
+
         return args
