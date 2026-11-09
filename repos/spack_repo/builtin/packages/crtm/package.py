@@ -110,6 +110,7 @@ class Crtm(CMakePackage):
 
     # https://github.com/JCSDA/spack-stack/issues/1088
     patch("v3.1.0-skylabv8.installprefix.patch", when="@v3.1.0-skylabv8")
+    patch("crtm-3.1-nvhpc-compiler-flags.patch", when="@3.1.5 %nvhpc")
 
     def patch(self):
         if self.spec.satisfies("@2.4.0.1"):

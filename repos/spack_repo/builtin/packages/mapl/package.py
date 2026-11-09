@@ -346,6 +346,10 @@ class Mapl(CMakePackage):
     conflicts("+pflogger", when="@:2.40.3 %intel@2021.7:")
     conflicts("+extdata2g", when="@:2.40.3 %intel@2021.7:")
 
+    # nvfortran: "implicit none(type,external)" unsupported; History too large for -fast
+    patch("mapl-2.69.1-nvhpc-implicit-none.patch", when="@2.69.1 %nvhpc")
+    patch("mapl-2.69.1-nvhpc-history-O1.patch", when="@2.69.1 %nvhpc")
+
     depends_on("c", type="build")
     depends_on("cxx", type="build")
     depends_on("fortran", type="build")

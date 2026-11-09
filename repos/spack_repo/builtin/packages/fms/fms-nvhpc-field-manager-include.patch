@@ -1,0 +1,10 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -333,6 +333,7 @@
+                                                  constants
+                                                  astronomy/include
+                                                  field_manager/include
++                                                 field_manager
+                                                  time_interp/include
+                                                  tracer_manager/include
+                                                  tridiagonal/include
