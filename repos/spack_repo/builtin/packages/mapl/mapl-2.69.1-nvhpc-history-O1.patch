@@ -1,0 +1,14 @@
+--- a/gridcomps/History/CMakeLists.txt
++++ b/gridcomps/History/CMakeLists.txt
+@@ -1,5 +1,11 @@
+ esma_set_this (OVERRIDE MAPL.history)
+ 
++# nvfortran: MAPL_HistoryGridComp.F90 is "too large to compile at this optimization
++# level" with -fast (forces -O2); use -O1 for the targets in this directory only
++if (CMAKE_Fortran_COMPILER_ID MATCHES "NVHPC")
++  string (REPLACE "-fast" "-O1" CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}")
++endif ()
++
+ set (srcs
+      MAPL_HistoryCollection.F90
+      MAPL_HistoryGridComp.F90

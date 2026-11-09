@@ -1,0 +1,45 @@
+--- /dev/null
++++ b/cmake/compiler_flags_NVHPC_Fortran.cmake
+@@ -0,0 +1,42 @@
++####################################################################
++# NVHPC (nvfortran) flags; referenced by crtm_compiler_flags.cmake
++# but missing from the CRTM 3.1.x releases
++####################################################################
++
++####################################################################
++# FLAGS COMMON TO ALL BUILD TYPES
++####################################################################
++
++# nvfortran defaults; source form follows the file suffix (.f fixed, .f90 free)
++# -Mbackslash: treat '\' as a normal character (CRTM_SpcCoeff.f90 uses '\')
++set( CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -Mbackslash" )
++
++####################################################################
++# RELEASE FLAGS
++####################################################################
++
++set( CMAKE_Fortran_FLAGS_RELEASE "-O2" )
++
++####################################################################
++# DEBUG FLAGS
++####################################################################
++
++set( CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -Mbounds -traceback -Ktrap=fp" )
++
++####################################################################
++# RELEASE WITH DEBUG INFO FLAGS
++####################################################################
++
++set( CMAKE_Fortran_FLAGS_RELWITHDEBINFO "-O2 -g -traceback" )
++
++####################################################################
++# BIT REPRODUCIBLE FLAGS
++####################################################################
++
++set( CMAKE_Fortran_FLAGS_BIT     "-O2 -Kieee" )
++
++####################################################################
++# LINK FLAGS
++####################################################################
++
++set( CMAKE_Fortran_LINK_FLAGS    "" )
