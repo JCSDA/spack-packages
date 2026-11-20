@@ -1,0 +1,33 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -94,7 +94,8 @@
+ 
+ # Turn on unit testing.
+ include(CTest)
+-if(BUILD_TESTING)
++# nvfortran has no REAL(16), used by tests/test_intmath.F90
++if(BUILD_TESTING AND NOT CMAKE_Fortran_COMPILER_ID MATCHES "NVHPC")
+   add_subdirectory(tests)
+ endif()
+ 
+--- a/src/g2index.F90
++++ b/src/g2index.F90
+@@ -108,6 +108,9 @@
+   character cd8*8, ct10*10, hostname*15
+ #ifdef __GFORTRAN__
+   integer istat
++#elif defined(__NVCOMPILER)
++  integer istat
++  integer, external :: hostnm
+ #else
+   character hostnam*15
+   integer hostnm
+@@ -125,7 +128,7 @@
+   chead(1)(33:40) = ct10(1:2) // ':' // ct10(3:4) // ':' // ct10(5:6)
+   chead(1)(42:47) = 'GB2IX1'
+   chead(1)(49:54) = '      '
+-#ifdef __GFORTRAN__
++#if defined(__GFORTRAN__) || defined(__NVCOMPILER)
+   istat = hostnm(hostname)
+   if (istat .eq. 0) then
+      chead(1)(56:70) = '0000'

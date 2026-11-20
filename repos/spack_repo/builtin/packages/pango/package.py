@@ -14,8 +14,8 @@ class Pango(MesonPackage):
     far has been done in the context of the GTK+ widget toolkit."""
 
     homepage = "https://www.pango.org"
-    url = "http://ftp.gnome.org/pub/GNOME/sources/pango/1.40/pango-1.40.3.tar.xz"
-    list_url = "http://ftp.gnome.org/pub/gnome/sources/pango/"
+    url = "https://download.gnome.org/sources/pango/1.40/pango-1.40.3.tar.xz"
+    list_url = "https://download.gnome.org/sources/pango/"
     list_depth = 1
 
     license("LGPL-2.1-or-later")
@@ -74,7 +74,7 @@ class Pango(MesonPackage):
     depends_on("gmake", type="build")
 
     def url_for_version(self, version):
-        url = "http://ftp.gnome.org/pub/GNOME/sources/pango/{0}/pango-{1}.tar.xz"
+        url = "https://download.gnome.org/sources/pango/{0}/pango-{1}.tar.xz"
         return url.format(version.up_to(2), version)
 
     def meson_args(self):

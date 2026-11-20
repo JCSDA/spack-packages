@@ -105,6 +105,11 @@ class Fms(CMakePackage):
     # https://github.com/GEOS-ESM/ESMA-Baselibs/blob/main/patches/FMS/llvm.patch
     patch("llvmflang.patch", when="@2026.01.01 %fortran=clang")
 
+    # nvfortran does not search the including source's directory for nested
+    # Fortran includes; field_manager/include/field_manager.inc needs parse.inc
+    patch("fms-nvhpc-field-manager-include.patch", when="@2024.03:2025.03 %nvhpc")
+
+
     variant(
         "portable_kinds",
         description="Use iso_c_binding variable kinds",

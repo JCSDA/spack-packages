@@ -1,0 +1,12 @@
+--- a/shared/Partition.F90
++++ b/shared/Partition.F90
+@@ -4,7 +4,8 @@
+ module mapl_Partition
+    use mapl_KeywordEnforcerMod
+    use mapl_ErrorHandlingMod
+-   implicit none(type,external)
++   ! nvfortran does not support F2018 'implicit none(type,external)'
++   implicit none
+    private
+ 
+    public :: mapl_GetPartition
